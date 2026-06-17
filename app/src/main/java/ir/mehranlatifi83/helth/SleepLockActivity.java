@@ -1,5 +1,6 @@
 package ir.mehranlatifi83.helth;
 
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
@@ -128,6 +129,8 @@ public class SleepLockActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         if (countDownTimer != null) countDownTimer.cancel();
+        // Safety net: if the activity is destroyed without going through exitSleepMode
+        // (e.g., system kills it), make sure the alarm is stopped
         WakeAlarmService.stop(this);
     }
 
@@ -266,10 +269,8 @@ public class SleepLockActivity extends AppCompatActivity {
         textNoExitHint.setText(R.string.wake_time_reached);
         textCountdownLabel.setVisibility(View.GONE);
         btnConfirmAwake.setVisibility(View.VISIBLE);
-        btnConfirmAwake.setOnClickListener(v -> {
-            WakeAlarmService.stop(this);
-            exitSleepMode();
-        });
+        // exitSleepMode() handles stopping the alarm and all cleanup
+        btnConfirmAwake.setOnClickListener(v -> exitSleepMode());
     }
 
     private long nextWakeMs(int hour, int min) {
@@ -375,6 +376,9 @@ public class SleepLockActivity extends AppCompatActivity {
     // ─── Exit ────────────────────────────────────────────────────────────────
 
     private void exitSleepMode() {
+        // Stop the wake alarm FIRST (sends ACTION_DISMISS → player.reset() immediately)
+        WakeAlarmService.stop(this);
+
         stopService(new Intent(this, SleepVpnService.class));
         SleepVpnService.disconnect();
 
@@ -383,6 +387,9 @@ public class SleepLockActivity extends AppCompatActivity {
 
         getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                 .edit().putBoolean("sleep_active", false).apply();
+
+        // Cancel lingering sleep notification (posted by SleepScheduleReceiver)
+        getSystemService(NotificationManager.class).cancel(2);
 
         finish();
     }
