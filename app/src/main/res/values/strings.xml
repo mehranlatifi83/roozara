@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Helth</string>
+    <string name="accessibility_service_description">سرویس قطع وای‌فای برای حالت خواب</string>
+</resources>
