@@ -1,91 +1,169 @@
 package ir.mehranlatifi83.helth;
 
-import androidx.appcompat.app.AlertDialog;
+import android.Manifest;
 import android.app.NotificationManager;
 import android.content.Context;
-import android.media.AudioManager;
-import android.os.Build;
-import android.provider.Settings;
-import android.widget.Toast;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
+import android.media.AudioManager;
 import android.net.VpnService;
+import android.os.Build;
 import android.os.Bundle;
-import android.widget.Switch;
+import android.provider.Settings;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
+
+import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
 
-	private static final int VPN_REQUEST_CODE = 123;
+    private static final String PREFS = "helth_prefs";
+    private static final String KEY_SLEEP_ACTIVE = "sleep_active";
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
+    private MaterialButton btnToggle;
+    private TextView textStatus;
+    private MaterialCardView cardCircle;
+    private ImageView iconSleep;
+    private boolean isSleepActive = false;
 
-		Switch sleepSwitch = findViewById(R.id.switch_sleep_mode);
+    private final ActivityResultLauncher<Intent> vpnLauncher = registerForActivityResult(
+        new ActivityResultContracts.StartActivityForResult(),
+        result -> {
+            if (result.getResultCode() == RESULT_OK) {
+                startSleepMode();
+            }
+        }
+    );
 
-		sleepSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-			if (isChecked) {
-				Intent intent = VpnService.prepare(this);
-				if (intent != null) {
-					startActivityForResult(intent, VPN_REQUEST_CODE);
-				} else {
-					startVpnService();
-				}
-				muteDevice(); // گوشی رو بی‌صدا کن
-			} else {
-				stopVpnService();
-				unmuteDevice(); // گوشی رو به حالت عادی برگردون
-			}
-		});
-	}
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
-	private void startVpnService() {
-		startService(new Intent(this, SleepVpnService.class));
-	}
+        btnToggle = findViewById(R.id.btn_toggle);
+        textStatus = findViewById(R.id.text_status);
+        cardCircle = findViewById(R.id.card_circle);
+        iconSleep = findViewById(R.id.icon_sleep);
+        TextView textDate = findViewById(R.id.text_date);
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
 
-	private void stopVpnService() {
-		stopService(new Intent(this, SleepVpnService.class));
-		SleepVpnService.disconnect();  // VPN رو واقعا ببند
-	}
+        textDate.setText(getPersianDate());
+        bottomNav.setSelectedItemId(R.id.nav_sleep);
 
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		if (requestCode == VPN_REQUEST_CODE && resultCode == RESULT_OK) {
-			startVpnService();
-		}
-		super.onActivityResult(requestCode, resultCode, data);
-	}
+        SharedPreferences prefs = getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        isSleepActive = prefs.getBoolean(KEY_SLEEP_ACTIVE, false);
+        updateUI();
 
-	private void muteDevice() {
-		NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !notificationManager.isNotificationPolicyAccessGranted()) {
-			// اگر اجازه نداره، کاربر رو بفرست به تنظیمات تا دسترسی بده
-			showPermissionDialog();
-			return;
-		}
+        btnToggle.setOnClickListener(v -> toggleSleepMode());
 
-		AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-		audioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT);
-	}
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1);
+            }
+        }
+    }
 
-	private void unmuteDevice() {
-		AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-		audioManager.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
-	}
+    private void toggleSleepMode() {
+        if (isSleepActive) {
+            stopSleepMode();
+        } else {
+            Intent vpnIntent = VpnService.prepare(this);
+            if (vpnIntent != null) {
+                vpnLauncher.launch(vpnIntent);
+            } else {
+                startSleepMode();
+            }
+        }
+    }
 
-	private void showPermissionDialog() {
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle("نیاز به دسترسی")
-				.setMessage("برای فعال کردن حالت سکوت کامل در هنگام خواب، لطفاً دسترسی 'مزاحم نشوید (Do Not Disturb)' را به برنامه بدهید.\n\nبا رفتن به تنظیمات، این دسترسی را فعال کنید.")
-				.setPositiveButton("رفتن به تنظیمات", (dialog, which) -> {
-					Intent intent = new Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS);
-					startActivity(intent);
-				})
-				.setNegativeButton("لغو", (dialog, which) -> {
-					dialog.dismiss();
-				})
-				.setCancelable(false)
-				.show();
-	}
+    private void startSleepMode() {
+        NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !nm.isNotificationPolicyAccessGranted()) {
+            showDndPermissionDialog();
+            return;
+        }
+        startService(new Intent(this, SleepVpnService.class));
+        AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        am.setRingerMode(AudioManager.RINGER_MODE_SILENT);
+        isSleepActive = true;
+        saveState();
+        updateUI();
+    }
+
+    private void stopSleepMode() {
+        stopService(new Intent(this, SleepVpnService.class));
+        SleepVpnService.disconnect();
+        AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        am.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+        isSleepActive = false;
+        saveState();
+        updateUI();
+    }
+
+    private void updateUI() {
+        int primaryColor = ContextCompat.getColor(this, R.color.colorPrimary);
+        int variantColor = ContextCompat.getColor(this, R.color.colorOnSurfaceVariant);
+        int surfaceColor = ContextCompat.getColor(this, R.color.colorSurface);
+
+        if (isSleepActive) {
+            textStatus.setText(R.string.status_active);
+            textStatus.setTextColor(primaryColor);
+            btnToggle.setText(R.string.btn_disable_sleep);
+            cardCircle.setStrokeColor(primaryColor);
+            iconSleep.setImageTintList(ColorStateList.valueOf(primaryColor));
+        } else {
+            textStatus.setText(R.string.status_inactive);
+            textStatus.setTextColor(variantColor);
+            btnToggle.setText(R.string.btn_enable_sleep);
+            cardCircle.setStrokeColor(surfaceColor);
+            iconSleep.setImageTintList(ColorStateList.valueOf(variantColor));
+        }
+    }
+
+    private void saveState() {
+        getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(KEY_SLEEP_ACTIVE, isSleepActive)
+            .apply();
+    }
+
+    private void showDndPermissionDialog() {
+        new AlertDialog.Builder(this)
+            .setTitle(R.string.dnd_dialog_title)
+            .setMessage(R.string.dnd_dialog_message)
+            .setPositiveButton(R.string.go_to_settings, (d, w) ->
+                startActivity(new Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)))
+            .setNegativeButton(R.string.cancel, null)
+            .setCancelable(false)
+            .show();
+    }
+
+    private String getPersianDate() {
+        Calendar cal = Calendar.getInstance();
+        String[] persianDays = {"یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه", "شنبه"};
+        String[] persianMonths = {"فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور",
+                                   "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"};
+        String dayName = persianDays[cal.get(Calendar.DAY_OF_WEEK) - 1];
+        int[] jalali = JalaliCalendar.toJalali(
+            cal.get(Calendar.YEAR),
+            cal.get(Calendar.MONTH) + 1,
+            cal.get(Calendar.DAY_OF_MONTH)
+        );
+        return dayName + "،  " + jalali[2] + " " + persianMonths[jalali[1] - 1] + " " + jalali[0];
+    }
 }

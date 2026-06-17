@@ -1,4 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Helth</string>
-    <string name="accessibility_service_description">سرویس قطع وای‌فای برای حالت خواب</string>
+    <string name="app_name">سلامت</string>
+    <string name="sleep_mode">حالت خواب</string>
+    <string name="status_active">فعال</string>
+    <string name="status_inactive">غیرفعال</string>
+    <string name="btn_enable_sleep">فعال‌سازی حالت خواب</string>
+    <string name="btn_disable_sleep">غیرفعال کردن</string>
+    <string name="label_sleep_time">زمان خواب</string>
+    <string name="label_wake_time">بیداری</string>
+    <string name="nav_sleep">خواب</string>
+    <string name="nav_water">آب</string>
+    <string name="notif_title">حالت خواب فعاله</string>
+    <string name="notif_text">اینترنت مسدود و گوشی سایلنته</string>
+    <string name="channel_name">حالت خواب</string>
+    <string name="dnd_dialog_title">نیاز به دسترسی</string>
+    <string name="dnd_dialog_message">برای سایلنت کردن گوشی، لطفاً دسترسی «مزاحم نشوید» را به برنامه بدهید.</string>
+    <string name="go_to_settings">رفتن به تنظیمات</string>
+    <string name="cancel">لغو</string>
+    <string name="schedule_not_set">‑‑:‑‑</string>
+    <string name="set_schedule_hint">برنامه خواب هنوز تنظیم نشده</string>
+    <string name="accessibility_service_description">سرویس حالت خواب</string>
 </resources>
