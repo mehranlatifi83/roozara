@@ -151,8 +151,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupBottomNav() {
-        ((BottomNavigationView) findViewById(R.id.bottom_nav))
-                .setSelectedItemId(R.id.nav_sleep);
+        BottomNavigationView nav = findViewById(R.id.bottom_nav);
+        nav.setSelectedItemId(R.id.nav_sleep);
+        nav.setOnItemSelectedListener(item -> {
+            if (item.getItemId() == R.id.nav_water) {
+                startActivity(new Intent(this, WaterActivity.class)
+                        .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP));
+                finish();
+                return true;
+            }
+            return true; // nav_sleep: stay
+        });
     }
 
     private void setupScheduleCard() {

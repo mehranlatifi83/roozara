@@ -65,6 +65,18 @@
             android:foregroundServiceType="specialUse"
             android:exported="false" />
 
+        <activity
+            android:name=".WaterActivity"
+            android:exported="false" />
+
+        <receiver
+            android:name=".WaterReminderReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="ir.mehranlatifi83.helth.ACTION_WATER" />
+            </intent-filter>
+        </receiver>
+
         <receiver
             android:name=".BootReceiver"
             android:exported="false">

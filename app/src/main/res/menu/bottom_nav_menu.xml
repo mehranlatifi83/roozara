@@ -8,5 +8,5 @@
         android:id="@+id/nav_water"
         android:icon="@drawable/ic_water"
         android:title="@string/nav_water"
-        android:enabled="false"/>
+        android:enabled="true"/>
 </menu>
