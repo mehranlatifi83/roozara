@@ -11,6 +11,7 @@ public class BootReceiver extends BroadcastReceiver {
                 && ScheduleManager.isScheduleEnabled(ctx)) {
             ScheduleManager.scheduleSleepAlarm(ctx);
             ScheduleManager.scheduleWakeAlarm(ctx);
+            ScheduleManager.scheduleSleepReminderAlarm(ctx);
         }
     }
 }

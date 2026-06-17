@@ -14,8 +14,9 @@ import androidx.core.app.NotificationCompat;
 
 public class SleepScheduleReceiver extends BroadcastReceiver {
 
-    public static final String ACTION_SLEEP = "ir.mehranlatifi83.helth.ACTION_SLEEP";
-    public static final String ACTION_WAKE  = "ir.mehranlatifi83.helth.ACTION_WAKE";
+    public static final String ACTION_SLEEP          = "ir.mehranlatifi83.helth.ACTION_SLEEP";
+    public static final String ACTION_WAKE           = "ir.mehranlatifi83.helth.ACTION_WAKE";
+    public static final String ACTION_SLEEP_REMINDER = "ir.mehranlatifi83.helth.ACTION_SLEEP_REMINDER";
 
     private static final String CHANNEL_ID = "schedule_channel";
     private static final int    NOTIF_SLEEP = 2;
@@ -24,7 +25,10 @@ public class SleepScheduleReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context ctx, Intent intent) {
         String action = intent.getAction();
-        if (ACTION_SLEEP.equals(action)) {
+        if (ACTION_SLEEP_REMINDER.equals(action)) {
+            showSleepReminderNotification(ctx);
+            ScheduleManager.scheduleSleepReminderAlarm(ctx); // reschedule for next day
+        } else if (ACTION_SLEEP.equals(action)) {
             activateSleepMode(ctx);
             ScheduleManager.scheduleSleepAlarm(ctx); // reschedule for next day
         } else if (ACTION_WAKE.equals(action)) {
@@ -89,6 +93,27 @@ public class SleepScheduleReceiver extends BroadcastReceiver {
                 .setOngoing(true)
                 .setAutoCancel(false)
                 .build());
+    }
+
+    private void showSleepReminderNotification(Context ctx) {
+        ensureChannel(ctx);
+        PendingIntent openApp = PendingIntent.getActivity(
+                ctx, 20,
+                new Intent(ctx, MainActivity.class)
+                        .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK),
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        ctx.getSystemService(NotificationManager.class).notify(5,
+                new NotificationCompat.Builder(ctx, CHANNEL_ID)
+                        .setContentTitle(ctx.getString(R.string.notif_sleep_reminder_title))
+                        .setContentText(ctx.getString(R.string.notif_sleep_reminder_text))
+                        .setStyle(new NotificationCompat.BigTextStyle()
+                                .bigText(ctx.getString(R.string.notif_sleep_reminder_text)))
+                        .setSmallIcon(R.drawable.ic_moon)
+                        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                        .setContentIntent(openApp)
+                        .setAutoCancel(true)
+                        .build());
     }
 
     private void showWakeNotification(Context ctx) {

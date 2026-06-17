@@ -18,8 +18,9 @@ public class ScheduleManager {
     static final String KEY_SCHEDULE_ENABLED = "schedule_enabled";
     private static final String PREFS  = "helth_prefs";
 
-    private static final int REQ_SLEEP = 100;
-    private static final int REQ_WAKE  = 101;
+    private static final int REQ_SLEEP     = 100;
+    private static final int REQ_WAKE      = 101;
+    private static final int REQ_REMINDER  = 102;
 
     public static void saveSleepTime(Context ctx, int hour, int min) {
         prefs(ctx).edit().putInt(KEY_SLEEP_HOUR, hour).putInt(KEY_SLEEP_MIN, min).apply();
@@ -52,6 +53,7 @@ public class ScheduleManager {
         if (enabled) {
             scheduleSleepAlarm(ctx);
             scheduleWakeAlarm(ctx);
+            scheduleSleepReminderAlarm(ctx);
         } else {
             cancelAlarms(ctx);
         }
@@ -69,10 +71,21 @@ public class ScheduleManager {
         setAlarm(ctx, nextTriggerMs(t[0], t[1]), SleepScheduleReceiver.ACTION_WAKE, REQ_WAKE);
     }
 
+    public static void scheduleSleepReminderAlarm(Context ctx) {
+        int[] t = getSleepTime(ctx);
+        if (t == null) return;
+        // Fire 15 minutes before sleep time
+        int totalMin = t[0] * 60 + t[1] - 15;
+        if (totalMin < 0) totalMin += 24 * 60;
+        setAlarm(ctx, nextTriggerMs(totalMin / 60, totalMin % 60),
+                SleepScheduleReceiver.ACTION_SLEEP_REMINDER, REQ_REMINDER);
+    }
+
     public static void cancelAlarms(Context ctx) {
         AlarmManager am = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
         am.cancel(pendingIntent(ctx, SleepScheduleReceiver.ACTION_SLEEP, REQ_SLEEP));
         am.cancel(pendingIntent(ctx, SleepScheduleReceiver.ACTION_WAKE, REQ_WAKE));
+        am.cancel(pendingIntent(ctx, SleepScheduleReceiver.ACTION_SLEEP_REMINDER, REQ_REMINDER));
     }
 
     public static boolean canScheduleExact(Context ctx) {

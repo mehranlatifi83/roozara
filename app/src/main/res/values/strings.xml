@@ -69,4 +69,8 @@
     <string name="choose_sound_title">انتخاب صدای بیداری</string>
     <string name="choose_system_ringtone">زنگ سیستم</string>
     <string name="choose_audio_file">فایل صوتی</string>
+
+    <!-- Sleep reminder -->
+    <string name="notif_sleep_reminder_title">۱۵ دقیقه تا وقت خواب 🌙</string>
+    <string name="notif_sleep_reminder_text">وقتشه گوشی رو بذاری کنار و آماده بشی. نور رو کم کن، یه نفس عمیق بکش — بدنت به استراحت نیاز داره 🧘</string>
 </resources>

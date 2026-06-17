@@ -243,6 +243,7 @@ public class MainActivity extends AppCompatActivity {
             if (ScheduleManager.isScheduleEnabled(this)) {
                 ScheduleManager.scheduleSleepAlarm(this);
                 ScheduleManager.scheduleWakeAlarm(this);
+                ScheduleManager.scheduleSleepReminderAlarm(this);
             }
             updateScheduleUI();
         });
