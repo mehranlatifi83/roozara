@@ -48,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
     private MaterialSwitch   switchSchedule;
     private TextView         textLockMode;
     private TextView         textOverlayStatus;
+    private TextView         textSoundName;
 
     private boolean isSleepActive = false;
 
@@ -55,6 +56,39 @@ public class MainActivity extends AppCompatActivity {
     private final ActivityResultLauncher<Intent> vpnLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> { if (result.getResultCode() == RESULT_OK) startSleepMode(); }
+    );
+
+    /** Handles the system ringtone picker result. */
+    private final ActivityResultLauncher<Intent> ringtoneLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    Uri uri = result.getData().getParcelableExtra(
+                            android.media.RingtoneManager.EXTRA_RINGTONE_PICKED_URI);
+                    if (uri != null) {
+                        saveAlarmSoundUri(uri.toString());
+                    } else {
+                        // User selected "Default" in the picker
+                        saveAlarmSoundUri(null);
+                    }
+                }
+            }
+    );
+
+    /** Handles the audio file picker (SAF) result. */
+    private final ActivityResultLauncher<Intent> fileLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    Uri uri = result.getData().getData();
+                    if (uri != null) {
+                        // Persist permission so we can read the file after the session ends
+                        getContentResolver().takePersistableUriPermission(
+                                uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        saveAlarmSoundUri(uri.toString());
+                    }
+                }
+            }
     );
 
     // ─── Lifecycle ───────────────────────────────────────────────────────────
@@ -94,6 +128,7 @@ public class MainActivity extends AppCompatActivity {
         switchSchedule   = findViewById(R.id.switch_schedule);
         textLockMode      = findViewById(R.id.text_lock_mode);
         textOverlayStatus = findViewById(R.id.text_overlay_status);
+        textSoundName     = findViewById(R.id.text_sound_name);
 
         ((TextView) findViewById(R.id.text_date)).setText(buildPersianDate());
 
@@ -104,10 +139,12 @@ public class MainActivity extends AppCompatActivity {
         updateScheduleUI();
         updateLockModeUI();
         updateOverlayUI();
+        updateSoundUI();
 
         btnToggle.setOnClickListener(v -> toggleSleepMode());
         findViewById(R.id.row_lock_mode).setOnClickListener(v -> toggleLockMode());
         findViewById(R.id.row_overlay).setOnClickListener(v -> onOverlayRowTapped());
+        findViewById(R.id.row_sound).setOnClickListener(v -> showSoundPickerDialog());
     }
 
     private void setupBottomNav() {
@@ -318,6 +355,63 @@ public class MainActivity extends AppCompatActivity {
         textLockMode.setText(isTimed
                 ? R.string.lock_mode_timed
                 : R.string.lock_mode_math);
+    }
+
+    // ─── Sound picker ─────────────────────────────────────────────────────────
+
+    private void showSoundPickerDialog() {
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle(R.string.choose_sound_title)
+                .setItems(new CharSequence[]{
+                        getString(R.string.choose_system_ringtone),
+                        getString(R.string.choose_audio_file)
+                }, (dialog, which) -> {
+                    if (which == 0) openSystemRingtonePicker();
+                    else            openFilePicker();
+                })
+                .show();
+    }
+
+    private void openSystemRingtonePicker() {
+        String saved = getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .getString(WakeAlarmService.PREF_SOUND_URI, null);
+        Intent intent = new Intent(android.media.RingtoneManager.ACTION_RINGTONE_PICKER);
+        intent.putExtra(android.media.RingtoneManager.EXTRA_RINGTONE_TYPE,
+                android.media.RingtoneManager.TYPE_ALARM);
+        intent.putExtra(android.media.RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true);
+        intent.putExtra(android.media.RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, false);
+        if (saved != null) {
+            intent.putExtra(android.media.RingtoneManager.EXTRA_RINGTONE_EXISTING_URI,
+                    Uri.parse(saved));
+        }
+        ringtoneLauncher.launch(intent);
+    }
+
+    private void openFilePicker() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("audio/*");
+        fileLauncher.launch(intent);
+    }
+
+    private void saveAlarmSoundUri(String uriStr) {
+        getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .edit().putString(WakeAlarmService.PREF_SOUND_URI, uriStr).apply();
+        updateSoundUI();
+    }
+
+    private void updateSoundUI() {
+        String saved = getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .getString(WakeAlarmService.PREF_SOUND_URI, null);
+        if (saved == null) {
+            textSoundName.setText(R.string.sound_default);
+        } else {
+            Uri uri = Uri.parse(saved);
+            // Try to show the ringtone title; fall back to "فایل سفارشی"
+            android.media.Ringtone r = android.media.RingtoneManager.getRingtone(this, uri);
+            String title = r != null ? r.getTitle(this) : null;
+            textSoundName.setText(title != null ? title : getString(R.string.sound_custom_file));
+        }
     }
 
     // ─── Permission dialogs ──────────────────────────────────────────────────

@@ -51,4 +51,19 @@
     <string name="overlay_off">غیرفعال</string>
     <string name="overlay_dialog_title">نمایش روی سایر برنامه‌ها</string>
     <string name="overlay_dialog_message">بدون این دسترسی، وقتی ساعت خواب میشه و گوشی روشنه و تو یه برنامه دیگه‌ای، فقط یه نوتیفیکیشن میاد و باید رو اون ضربه بزنی.\n\nبا دادن این دسترسی، صفحه قفل خواب مستقیماً روی هر برنامه‌ای که بازه میاد — بدون نیاز به ضربه زدن.</string>
+
+    <!-- Wake alarm -->
+    <string name="wake_alarm_notif_title">وقت بیداریه! ☀️</string>
+    <string name="wake_alarm_notif_text">ضربه بزن تا تأیید کنی بیداری</string>
+    <string name="wake_alarm_channel_name">زنگ بیداری</string>
+    <string name="confirm_awake">بیدار شدم ✓</string>
+    <string name="wake_time_reached">وقت بیداریه! زنگ داره میخوره 🔔</string>
+
+    <!-- Sound picker -->
+    <string name="sound_picker_label">صدای بیداری</string>
+    <string name="sound_default">زنگ پیش‌فرض سیستم</string>
+    <string name="sound_custom_file">فایل سفارشی</string>
+    <string name="choose_sound_title">انتخاب صدای بیداری</string>
+    <string name="choose_system_ringtone">زنگ سیستم</string>
+    <string name="choose_audio_file">فایل صوتی</string>
 </resources>

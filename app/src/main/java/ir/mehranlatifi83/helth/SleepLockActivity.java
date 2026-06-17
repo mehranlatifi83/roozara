@@ -45,8 +45,11 @@ public class SleepLockActivity extends AppCompatActivity {
     private TextView          textError;
 
     // Timed mode views
-    private LinearLayout sectionTimed;
-    private TextView     textCountdown;
+    private LinearLayout  sectionTimed;
+    private TextView      textCountdown;
+    private TextView      textNoExitHint;
+    private TextView      textCountdownLabel;
+    private MaterialButton btnConfirmAwake;
 
     // Clock views (shared)
     private TextView textClock;
@@ -87,11 +90,14 @@ public class SleepLockActivity extends AppCompatActivity {
         hideSystemBars();
         blockBackButton();
 
-        textClock      = findViewById(R.id.text_clock);
-        textLockDate   = findViewById(R.id.text_lock_date);
-        sectionMath    = findViewById(R.id.section_math);
-        sectionTimed   = findViewById(R.id.section_timed);
-        textCountdown  = findViewById(R.id.text_countdown);
+        textClock          = findViewById(R.id.text_clock);
+        textLockDate       = findViewById(R.id.text_lock_date);
+        sectionMath        = findViewById(R.id.section_math);
+        sectionTimed       = findViewById(R.id.section_timed);
+        textCountdown      = findViewById(R.id.text_countdown);
+        textNoExitHint     = findViewById(R.id.text_no_exit_hint);
+        textCountdownLabel = findViewById(R.id.text_countdown_label);
+        btnConfirmAwake    = findViewById(R.id.btn_confirm_awake);
 
         timedMode = getSharedPreferences(PREFS, MODE_PRIVATE)
                 .getString(KEY_LOCK_MODE, MODE_MATH).equals(MODE_TIMED);
@@ -122,6 +128,7 @@ public class SleepLockActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         if (countDownTimer != null) countDownTimer.cancel();
+        WakeAlarmService.stop(this);
     }
 
     // ─── Mode setup ──────────────────────────────────────────────────────────
@@ -248,9 +255,21 @@ public class SleepLockActivity extends AppCompatActivity {
             @Override
             public void onFinish() {
                 textCountdown.setText("00:00:00");
-                exitSleepMode();
+                onWakeTimeReached();
             }
         }.start();
+    }
+
+    /** Called when the countdown reaches zero. Plays the alarm and shows the confirm button. */
+    private void onWakeTimeReached() {
+        WakeAlarmService.start(this);
+        textNoExitHint.setText(R.string.wake_time_reached);
+        textCountdownLabel.setVisibility(View.GONE);
+        btnConfirmAwake.setVisibility(View.VISIBLE);
+        btnConfirmAwake.setOnClickListener(v -> {
+            WakeAlarmService.stop(this);
+            exitSleepMode();
+        });
     }
 
     private long nextWakeMs(int hour, int min) {

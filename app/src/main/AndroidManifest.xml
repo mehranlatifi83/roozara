@@ -59,6 +59,11 @@
             </intent-filter>
         </receiver>
 
+        <service
+            android:name=".WakeAlarmService"
+            android:foregroundServiceType="specialUse"
+            android:exported="false" />
+
         <receiver
             android:name=".BootReceiver"
             android:exported="false">

@@ -60,7 +60,8 @@ public class SleepScheduleReceiver extends BroadcastReceiver {
         ctx.getSharedPreferences("helth_prefs", Context.MODE_PRIVATE)
                 .edit().putBoolean("sleep_active", false).apply();
 
-        showWakeNotification(ctx);
+        // Start the alarm service — it plays the wake sound and shows a dismiss notification
+        WakeAlarmService.start(ctx);
     }
 
     /** Posts a high-priority notification with a full-screen intent that opens
