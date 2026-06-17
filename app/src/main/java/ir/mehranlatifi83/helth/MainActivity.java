@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.media.AudioManager;
+import android.net.Uri;
 import android.net.VpnService;
 import android.os.Build;
 import android.os.Bundle;
@@ -140,7 +141,9 @@ public class MainActivity extends AppCompatActivity {
         persistSleepState();
         updateSleepUI();
 
-        SleepLockActivity.launch(this);
+        // Post a full-screen-intent notification — the only reliable way to show
+        // an activity over any foreground app on Android 10+.
+        SleepScheduleReceiver.showSleepNotification(this);
     }
 
     private void stopSleepMode() {
@@ -290,6 +293,22 @@ public class MainActivity extends AppCompatActivity {
                         != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(
                     this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1);
+        }
+        // Android 14+ requires explicit user approval for USE_FULL_SCREEN_INTENT
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            if (!nm.canUseFullScreenIntent()) {
+                new androidx.appcompat.app.AlertDialog.Builder(this)
+                        .setTitle(R.string.fullscreen_permission_title)
+                        .setMessage(R.string.fullscreen_permission_message)
+                        .setPositiveButton(R.string.go_to_settings, (d, w) -> {
+                            Intent i = new Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT,
+                                    Uri.parse("package:" + getPackageName()));
+                            startActivity(i);
+                        })
+                        .setNegativeButton(R.string.cancel, null)
+                        .show();
+            }
         }
     }
 

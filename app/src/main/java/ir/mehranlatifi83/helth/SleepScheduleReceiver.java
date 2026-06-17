@@ -60,9 +60,10 @@ public class SleepScheduleReceiver extends BroadcastReceiver {
     }
 
     /** Posts a high-priority notification with a full-screen intent that opens
-     *  the sleep lock screen. This is the correct approach for background-to-foreground
-     *  activity transitions on Android 10+ (API 29+). */
-    private void showSleepNotification(Context ctx) {
+     *  the sleep lock screen. Static so it can be called from MainActivity too —
+     *  using a notification is the only reliable way to show an activity over
+     *  any foreground app on Android 10+ (API 29+). */
+    public static void showSleepNotification(Context ctx) {
         ensureChannel(ctx);
 
         PendingIntent lockScreenPi = PendingIntent.getActivity(
@@ -106,7 +107,7 @@ public class SleepScheduleReceiver extends BroadcastReceiver {
                 .build());
     }
 
-    private void ensureChannel(Context ctx) {
+    public static void ensureChannel(Context ctx) {
         NotificationChannel ch = new NotificationChannel(
                 CHANNEL_ID,
                 ctx.getString(R.string.channel_schedule_name),

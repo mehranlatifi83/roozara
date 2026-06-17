@@ -34,4 +34,14 @@
     <string name="notif_wake_text">وقت بیداریه — حالت خواب غیرفعال شد</string>
     <string name="alarm_permission_title">نیاز به دسترسی</string>
     <string name="alarm_permission_message">برای تنظیم ساعت خودکار خواب، لطفاً دسترسی «تنظیم آلارم دقیق» را به برنامه بدهید.</string>
+    <string name="fullscreen_permission_title">نیاز به دسترسی</string>
+    <string name="fullscreen_permission_message">برای نمایش صفحه قفل خواب روی همه برنامه‌ها، دسترسی «نمایش تمام‌صفحه» را به برنامه بدهید.</string>
+
+    <!-- Lock mode -->
+    <string name="lock_mode_math">خروج با مسئله ریاضی</string>
+    <string name="lock_mode_timed">قفل تا زمان بیداری</string>
+    <string name="lock_mode_label">حالت قفل</string>
+    <string name="no_exit_hint">📵 تا وقت بیداری نمیتونی خارج بشی</string>
+    <string name="time_until_wake">تا بیداری</string>
+    <string name="no_wake_time_set">زمان بیداری تنظیم نشده</string>
 </resources>
