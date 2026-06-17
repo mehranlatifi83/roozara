@@ -20,4 +20,18 @@
     <string name="schedule_not_set">‑‑:‑‑</string>
     <string name="set_schedule_hint">برنامه خواب هنوز تنظیم نشده</string>
     <string name="accessibility_service_description">سرویس حالت خواب</string>
+
+    <!-- Schedule -->
+    <string name="picker_sleep_title">ساعت خواب</string>
+    <string name="picker_wake_title">ساعت بیداری</string>
+    <string name="schedule_active">برنامه خواب فعاله</string>
+    <string name="schedule_inactive">برنامه خواب غیرفعاله</string>
+    <string name="tap_to_set">برای تنظیم ضربه بزن</string>
+    <string name="channel_schedule_name">برنامه خواب</string>
+    <string name="notif_sleep_time_title">وقت خوابه 🌙</string>
+    <string name="notif_sleep_time_text">حالت خواب فعال شد — شب بخیر</string>
+    <string name="notif_wake_title">صبح بخیر ☀️</string>
+    <string name="notif_wake_text">وقت بیداریه — حالت خواب غیرفعال شد</string>
+    <string name="alarm_permission_title">نیاز به دسترسی</string>
+    <string name="alarm_permission_message">برای تنظیم ساعت خودکار خواب، لطفاً دسترسی «تنظیم آلارم دقیق» را به برنامه بدهید.</string>
 </resources>
