@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.KeyEvent;
@@ -12,6 +13,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.EditorInfo;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.activity.OnBackPressedCallback;
@@ -30,18 +32,33 @@ import java.util.Random;
 
 public class SleepLockActivity extends AppCompatActivity {
 
-    private TextView          textClock;
-    private TextView          textLockDate;
+    private static final String PREFS          = "helth_prefs";
+    private static final String KEY_LOCK_MODE  = "lock_exit_mode";
+    static final         String MODE_MATH      = "math";
+    static final         String MODE_TIMED     = "timed";
+
+    // Math mode views
+    private LinearLayout      sectionMath;
     private TextView          textMathProblem;
     private TextInputEditText editAnswer;
     private TextInputLayout   inputLayoutAnswer;
     private TextView          textError;
 
-    private int mathAnswer;
-    private int wrongCount = 0;
+    // Timed mode views
+    private LinearLayout sectionTimed;
+    private TextView     textCountdown;
 
-    private final Handler   clockHandler = new Handler(Looper.getMainLooper());
-    private final Runnable  clockTick    = new Runnable() {
+    // Clock views (shared)
+    private TextView textClock;
+    private TextView textLockDate;
+
+    private int  mathAnswer;
+    private int  wrongCount = 0;
+    private boolean timedMode;
+
+    private CountDownTimer countDownTimer;
+    private final Handler  clockHandler = new Handler(Looper.getMainLooper());
+    private final Runnable clockTick    = new Runnable() {
         @Override public void run() {
             updateClock();
             clockHandler.postDelayed(this, 1000);
@@ -70,25 +87,22 @@ public class SleepLockActivity extends AppCompatActivity {
         hideSystemBars();
         blockBackButton();
 
-        textClock         = findViewById(R.id.text_clock);
-        textLockDate      = findViewById(R.id.text_lock_date);
-        textMathProblem   = findViewById(R.id.text_math_problem);
-        editAnswer        = findViewById(R.id.edit_answer);
-        inputLayoutAnswer = findViewById(R.id.input_layout_answer);
-        textError         = findViewById(R.id.text_error);
-        MaterialButton btnConfirm = findViewById(R.id.btn_confirm);
+        textClock      = findViewById(R.id.text_clock);
+        textLockDate   = findViewById(R.id.text_lock_date);
+        sectionMath    = findViewById(R.id.section_math);
+        sectionTimed   = findViewById(R.id.section_timed);
+        textCountdown  = findViewById(R.id.text_countdown);
+
+        timedMode = getSharedPreferences(PREFS, MODE_PRIVATE)
+                .getString(KEY_LOCK_MODE, MODE_MATH).equals(MODE_TIMED);
 
         updateClock();
-        generateNewProblem();
 
-        btnConfirm.setOnClickListener(v -> checkAnswer());
-        editAnswer.setOnEditorActionListener((v, actionId, event) -> {
-            if (actionId == EditorInfo.IME_ACTION_DONE) {
-                checkAnswer();
-                return true;
-            }
-            return false;
-        });
+        if (timedMode) {
+            setupTimedMode();
+        } else {
+            setupMathMode();
+        }
     }
 
     @Override
@@ -102,6 +116,42 @@ public class SleepLockActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         clockHandler.removeCallbacks(clockTick);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (countDownTimer != null) countDownTimer.cancel();
+    }
+
+    // ─── Mode setup ──────────────────────────────────────────────────────────
+
+    private void setupMathMode() {
+        sectionMath.setVisibility(View.VISIBLE);
+        sectionTimed.setVisibility(View.GONE);
+
+        textMathProblem   = findViewById(R.id.text_math_problem);
+        editAnswer        = findViewById(R.id.edit_answer);
+        inputLayoutAnswer = findViewById(R.id.input_layout_answer);
+        textError         = findViewById(R.id.text_error);
+        MaterialButton btnConfirm = findViewById(R.id.btn_confirm);
+
+        generateNewProblem();
+
+        btnConfirm.setOnClickListener(v -> checkAnswer());
+        editAnswer.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                checkAnswer();
+                return true;
+            }
+            return false;
+        });
+    }
+
+    private void setupTimedMode() {
+        sectionMath.setVisibility(View.GONE);
+        sectionTimed.setVisibility(View.VISIBLE);
+        startCountdown();
     }
 
     // ─── Window / immersive mode ─────────────────────────────────────────────
@@ -172,6 +222,47 @@ public class SleepLockActivity extends AppCompatActivity {
                 cal.get(Calendar.DAY_OF_MONTH));
         return days[cal.get(Calendar.DAY_OF_WEEK) - 1]
                 + "،  " + j[2] + " " + months[j[1] - 1];
+    }
+
+    // ─── Countdown (timed mode) ───────────────────────────────────────────────
+
+    private void startCountdown() {
+        int[] wake = ScheduleManager.getWakeTime(this);
+        if (wake == null) {
+            textCountdown.setText(R.string.no_wake_time_set);
+            return;
+        }
+
+        long wakeMs    = nextWakeMs(wake[0], wake[1]);
+        long remaining = wakeMs - System.currentTimeMillis();
+
+        countDownTimer = new CountDownTimer(remaining, 1000) {
+            @Override
+            public void onTick(long ms) {
+                long h = ms / 3_600_000;
+                long m = (ms % 3_600_000) / 60_000;
+                long s = (ms % 60_000) / 1_000;
+                textCountdown.setText(
+                        String.format(Locale.getDefault(), "%02d:%02d:%02d", h, m, s));
+            }
+            @Override
+            public void onFinish() {
+                textCountdown.setText("00:00:00");
+                exitSleepMode();
+            }
+        }.start();
+    }
+
+    private long nextWakeMs(int hour, int min) {
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.HOUR_OF_DAY, hour);
+        cal.set(Calendar.MINUTE, min);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        if (cal.getTimeInMillis() <= System.currentTimeMillis()) {
+            cal.add(Calendar.DAY_OF_YEAR, 1);
+        }
+        return cal.getTimeInMillis();
     }
 
     // ─── Math captcha ────────────────────────────────────────────────────────
@@ -256,7 +347,7 @@ public class SleepLockActivity extends AppCompatActivity {
         ((AudioManager) getSystemService(Context.AUDIO_SERVICE))
                 .setRingerMode(AudioManager.RINGER_MODE_NORMAL);
 
-        getSharedPreferences("helth_prefs", Context.MODE_PRIVATE)
+        getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                 .edit().putBoolean("sleep_active", false).apply();
 
         finish();

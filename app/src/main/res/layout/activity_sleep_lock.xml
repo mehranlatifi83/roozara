@@ -61,73 +61,120 @@
             android:layout_marginBottom="40dp"
             android:background="#1E293B"/>
 
-        <!-- Math captcha section -->
-        <TextView
-            android:text="برای خروج از حالت خواب، جواب بده:"
-            android:textSize="13sp"
-            android:textColor="#64748B"
-            android:gravity="center"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-
-        <TextView
-            android:id="@+id/text_math_problem"
-            android:textSize="42sp"
-            android:textColor="@color/colorPrimary"
-            android:fontFamily="sans-serif-medium"
-            android:layout_marginTop="20dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-
-        <!-- Answer row -->
+        <!-- ══════════ MATH MODE SECTION ══════════ -->
         <LinearLayout
-            android:layout_width="240dp"
+            android:id="@+id/section_math"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="24dp"
-            android:gravity="center_vertical">
+            android:orientation="vertical"
+            android:gravity="center">
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/input_layout_answer"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                app:boxStrokeColor="@color/colorDivider"
-                app:hintTextColor="@color/colorOnSurfaceVariant">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/edit_answer"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="number"
-                    android:hint="جواب"
-                    android:textColor="@color/colorOnSurface"
-                    android:textSize="20sp"
-                    android:gravity="center"
-                    android:imeOptions="actionDone"
-                    android:maxLines="1"/>
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_confirm"
+            <TextView
+                android:text="برای خروج از حالت خواب، جواب بده:"
+                android:textSize="13sp"
+                android:textColor="#64748B"
+                android:gravity="center"
                 android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:id="@+id/text_math_problem"
+                android:textSize="42sp"
+                android:textColor="@color/colorPrimary"
+                android:fontFamily="sans-serif-medium"
+                android:layout_marginTop="20dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <!-- Answer row -->
+            <LinearLayout
+                android:layout_width="240dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:text="تأیید"
-                android:textSize="14sp"
-                app:cornerRadius="12dp"/>
+                android:orientation="horizontal"
+                android:layout_marginTop="24dp"
+                android:gravity="center_vertical">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/input_layout_answer"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    app:boxStrokeColor="@color/colorDivider"
+                    app:hintTextColor="@color/colorOnSurfaceVariant">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/edit_answer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="number"
+                        android:hint="جواب"
+                        android:textColor="@color/colorOnSurface"
+                        android:textSize="20sp"
+                        android:gravity="center"
+                        android:imeOptions="actionDone"
+                        android:maxLines="1"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_confirm"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:text="تأیید"
+                    android:textSize="14sp"
+                    app:cornerRadius="12dp"/>
+            </LinearLayout>
+
+            <!-- Error message -->
+            <TextView
+                android:id="@+id/text_error"
+                android:textSize="13sp"
+                android:textColor="#F87171"
+                android:layout_marginTop="12dp"
+                android:visibility="invisible"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
         </LinearLayout>
 
-        <!-- Error message -->
-        <TextView
-            android:id="@+id/text_error"
-            android:textSize="13sp"
-            android:textColor="#F87171"
-            android:layout_marginTop="12dp"
-            android:visibility="invisible"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+        <!-- ══════════ TIMED MODE SECTION ══════════ -->
+        <LinearLayout
+            android:id="@+id/section_timed"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:visibility="gone">
+
+            <TextView
+                android:text="@string/no_exit_hint"
+                android:textSize="14sp"
+                android:textColor="#64748B"
+                android:gravity="center"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <!-- Countdown display -->
+            <TextView
+                android:id="@+id/text_countdown"
+                android:textSize="52sp"
+                android:textColor="@color/colorPrimary"
+                android:fontFamily="sans-serif-light"
+                android:letterSpacing="0.05"
+                android:layout_marginTop="28dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:text="@string/time_until_wake"
+                android:textSize="13sp"
+                android:textColor="#64748B"
+                android:layout_marginTop="6dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+        </LinearLayout>
 
     </LinearLayout>
 </ScrollView>

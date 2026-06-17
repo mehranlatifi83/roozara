@@ -46,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView         textWakeTime;
     private TextView         textScheduleHint;
     private MaterialSwitch   switchSchedule;
+    private TextView         textLockMode;
 
     private boolean isSleepActive = false;
 
@@ -89,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
         textWakeTime     = findViewById(R.id.text_wake_time);
         textScheduleHint = findViewById(R.id.text_schedule_hint);
         switchSchedule   = findViewById(R.id.switch_schedule);
+        textLockMode     = findViewById(R.id.text_lock_mode);
 
         ((TextView) findViewById(R.id.text_date)).setText(buildPersianDate());
 
@@ -97,8 +99,10 @@ public class MainActivity extends AppCompatActivity {
 
         updateSleepUI();
         updateScheduleUI();
+        updateLockModeUI();
 
         btnToggle.setOnClickListener(v -> toggleSleepMode());
+        findViewById(R.id.row_lock_mode).setOnClickListener(v -> toggleLockMode());
     }
 
     private void setupBottomNav() {
@@ -259,6 +263,26 @@ public class MainActivity extends AppCompatActivity {
 
     private String fmt(int h, int m) {
         return String.format(Locale.getDefault(), "%02d:%02d", h, m);
+    }
+
+    private void toggleLockMode() {
+        SharedPreferences prefs = getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        boolean isTimed = SleepLockActivity.MODE_TIMED.equals(
+                prefs.getString("lock_exit_mode", SleepLockActivity.MODE_MATH));
+        prefs.edit()
+                .putString("lock_exit_mode",
+                        isTimed ? SleepLockActivity.MODE_MATH : SleepLockActivity.MODE_TIMED)
+                .apply();
+        updateLockModeUI();
+    }
+
+    private void updateLockModeUI() {
+        boolean isTimed = SleepLockActivity.MODE_TIMED.equals(
+                getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                        .getString("lock_exit_mode", SleepLockActivity.MODE_MATH));
+        textLockMode.setText(isTimed
+                ? R.string.lock_mode_timed
+                : R.string.lock_mode_math);
     }
 
     // ─── Permission dialogs ──────────────────────────────────────────────────
