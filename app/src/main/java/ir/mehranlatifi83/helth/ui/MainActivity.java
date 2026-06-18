@@ -138,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
         textOverlayStatus = findViewById(R.id.text_overlay_status);
         textSoundName     = findViewById(R.id.text_sound_name);
 
-        ((TextView) findViewById(R.id.text_date)).setText(buildPersianDate());
+        ((TextView) findViewById(R.id.text_date)).setText(buildLocalizedDate());
 
         isSleepActive = getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                 .getBoolean(KEY_SLEEP_ACTIVE, false);
@@ -531,16 +531,23 @@ public class MainActivity extends AppCompatActivity {
 
     // ─── Date ────────────────────────────────────────────────────────────────
 
-    private String buildPersianDate() {
-        Calendar cal    = Calendar.getInstance();
-        String[] days   = {"یکشنبه","دوشنبه","سه‌شنبه","چهارشنبه","پنجشنبه","جمعه","شنبه"};
-        String[] months = {"فروردین","اردیبهشت","خرداد","تیر","مرداد","شهریور",
-                           "مهر","آبان","آذر","دی","بهمن","اسفند"};
-        int[] j = JalaliCalendar.toJalali(
-                cal.get(Calendar.YEAR),
-                cal.get(Calendar.MONTH) + 1,
-                cal.get(Calendar.DAY_OF_MONTH));
-        return days[cal.get(Calendar.DAY_OF_WEEK) - 1]
-                + "،  " + j[2] + " " + months[j[1] - 1] + " " + j[0];
+    private String buildLocalizedDate() {
+        Calendar cal  = Calendar.getInstance();
+        String   lang = java.util.Locale.getDefault().getLanguage();
+        if ("fa".equals(lang)) {
+            String[] days   = {"یکشنبه","دوشنبه","سه‌شنبه","چهارشنبه","پنجشنبه","جمعه","شنبه"};
+            String[] months = {"فروردین","اردیبهشت","خرداد","تیر","مرداد","شهریور",
+                               "مهر","آبان","آذر","دی","بهمن","اسفند"};
+            int[] j = JalaliCalendar.toJalali(
+                    cal.get(Calendar.YEAR),
+                    cal.get(Calendar.MONTH) + 1,
+                    cal.get(Calendar.DAY_OF_MONTH));
+            return days[cal.get(Calendar.DAY_OF_WEEK) - 1]
+                    + "،  " + j[2] + " " + months[j[1] - 1] + " " + j[0];
+        }
+        return cal.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, java.util.Locale.getDefault())
+                + ",  "
+                + cal.getDisplayName(Calendar.MONTH, Calendar.LONG, java.util.Locale.getDefault())
+                + " " + cal.get(Calendar.DAY_OF_MONTH) + ", " + cal.get(Calendar.YEAR);
     }
 }

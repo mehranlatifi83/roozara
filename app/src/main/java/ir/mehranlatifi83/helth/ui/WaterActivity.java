@@ -55,7 +55,7 @@ public class WaterActivity extends AppCompatActivity {
         textDinnerTime    = findViewById(R.id.text_dinner_time);
         textReminderList  = findViewById(R.id.text_reminder_list);
 
-        ((TextView) findViewById(R.id.text_water_date)).setText(buildPersianDate());
+        ((TextView) findViewById(R.id.text_water_date)).setText(buildLocalizedDate());
     }
 
     private void setupBottomNav() {
@@ -177,14 +177,19 @@ public class WaterActivity extends AppCompatActivity {
 
     // ─── Date ────────────────────────────────────────────────────────────────
 
-    private String buildPersianDate() {
-        Calendar cal    = Calendar.getInstance();
-        String[] months = {"فروردین","اردیبهشت","خرداد","تیر","مرداد","شهریور",
-                           "مهر","آبان","آذر","دی","بهمن","اسفند"};
-        int[] j = JalaliCalendar.toJalali(
-                cal.get(Calendar.YEAR),
-                cal.get(Calendar.MONTH) + 1,
-                cal.get(Calendar.DAY_OF_MONTH));
-        return j[2] + " " + months[j[1] - 1] + " " + j[0];
+    private String buildLocalizedDate() {
+        Calendar cal  = Calendar.getInstance();
+        String   lang = java.util.Locale.getDefault().getLanguage();
+        if ("fa".equals(lang)) {
+            String[] months = {"فروردین","اردیبهشت","خرداد","تیر","مرداد","شهریور",
+                               "مهر","آبان","آذر","دی","بهمن","اسفند"};
+            int[] j = JalaliCalendar.toJalali(
+                    cal.get(Calendar.YEAR),
+                    cal.get(Calendar.MONTH) + 1,
+                    cal.get(Calendar.DAY_OF_MONTH));
+            return j[2] + " " + months[j[1] - 1] + " " + j[0];
+        }
+        return cal.getDisplayName(Calendar.MONTH, Calendar.LONG, java.util.Locale.getDefault())
+                + " " + cal.get(Calendar.DAY_OF_MONTH) + ", " + cal.get(Calendar.YEAR);
     }
 }

@@ -7,7 +7,6 @@
     android:orientation="vertical"
     android:gravity="center"
     android:background="@color/colorOverlayScrim"
-    android:layoutDirection="rtl"
     android:padding="24dp">
 
     <com.google.android.material.card.MaterialCardView

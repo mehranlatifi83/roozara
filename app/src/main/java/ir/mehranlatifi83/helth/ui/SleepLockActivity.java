@@ -210,14 +210,24 @@ public class SleepLockActivity extends AppCompatActivity {
         Calendar cal = Calendar.getInstance();
         textClock.setText(String.format(Locale.getDefault(),
                 "%02d:%02d", cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE)));
-        String[] days   = {"یکشنبه","دوشنبه","سه‌شنبه","چهارشنبه","پنجشنبه","جمعه","شنبه"};
-        String[] months = {"فروردین","اردیبهشت","خرداد","تیر","مرداد","شهریور",
-                           "مهر","آبان","آذر","دی","بهمن","اسفند"};
-        int[] j = JalaliCalendar.toJalali(
-                cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1,
-                cal.get(Calendar.DAY_OF_MONTH));
-        textLockDate.setText(days[cal.get(Calendar.DAY_OF_WEEK) - 1]
-                + "،  " + j[2] + " " + months[j[1] - 1]);
+        textLockDate.setText(buildLocalizedDate(cal));
+    }
+
+    private String buildLocalizedDate(Calendar cal) {
+        String lang = Locale.getDefault().getLanguage();
+        if ("fa".equals(lang)) {
+            String[] days   = {"یکشنبه","دوشنبه","سه‌شنبه","چهارشنبه","پنجشنبه","جمعه","شنبه"};
+            String[] months = {"فروردین","اردیبهشت","خرداد","تیر","مرداد","شهریور",
+                               "مهر","آبان","آذر","دی","بهمن","اسفند"};
+            int[] j = JalaliCalendar.toJalali(
+                    cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1,
+                    cal.get(Calendar.DAY_OF_MONTH));
+            return days[cal.get(Calendar.DAY_OF_WEEK) - 1] + "،  " + j[2] + " " + months[j[1] - 1];
+        }
+        return cal.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, Locale.getDefault())
+                + ",  "
+                + cal.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault())
+                + " " + cal.get(Calendar.DAY_OF_MONTH);
     }
 
     // ─── Countdown ───────────────────────────────────────────────────────────
@@ -307,22 +317,21 @@ public class SleepLockActivity extends AppCompatActivity {
                 .setMessage(mathProblemString(qa))
                 .setView(et)
                 .setCancelable(true)
-                .setPositiveButton("تأیید", (d, w) -> {
+                .setPositiveButton(R.string.confirm, (d, w) -> {
                     if (checkInput(et, qa[0])) exitSleepMode();
                     else handler.post(this::showEarlyExitMathDialog);
                 })
-                .setNegativeButton(getString(R.string.cancel), null)
+                .setNegativeButton(R.string.cancel, null)
                 .show();
     }
 
     private void showEarlyExitMemoryDialog() {
-        // Phase 1: show sequence
         String seq = randomDigitSequence(5);
         new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.memory_show_prompt))
                 .setMessage(seq)
                 .setCancelable(false)
-                .setPositiveButton("حفظ کردم!", (d, w) -> showEarlyExitMemoryInput(seq))
+                .setPositiveButton(R.string.memory_got_it, (d, w) -> showEarlyExitMemoryInput(seq))
                 .show();
     }
 
@@ -332,7 +341,7 @@ public class SleepLockActivity extends AppCompatActivity {
                 .setTitle(getString(R.string.memory_enter_prompt))
                 .setView(et)
                 .setCancelable(true)
-                .setPositiveButton("تأیید", (d, w) -> {
+                .setPositiveButton(R.string.confirm, (d, w) -> {
                     String typed = et.getText().toString().trim();
                     if (typed.equals(seq)) exitSleepMode();
                     else handler.post(this::showEarlyExitMemoryDialog);
@@ -407,9 +416,11 @@ public class SleepLockActivity extends AppCompatActivity {
                 exitSleepMode();
             } else {
                 wrongCount++;
-                String msg = wrongCount < 3 ? "اشتباهه! دوباره امتحان کن"
-                        : wrongCount < 6 ? "نه! 😴 (" + wrongCount + " بار اشتباه)"
-                        : "برو بخواب! " + wrongCount + " بار اشتباه 🌙";
+                String msg = wrongCount < 3
+                        ? getString(R.string.wrong_try_again)
+                        : wrongCount < 6
+                            ? getString(R.string.wrong_count, wrongCount)
+                            : getString(R.string.wrong_go_sleep, wrongCount);
                 textError.setText(msg);
                 textError.setVisibility(View.VISIBLE);
                 editAnswer.startAnimation(AnimationUtils.loadAnimation(this, R.anim.shake));
@@ -469,7 +480,7 @@ public class SleepLockActivity extends AppCompatActivity {
         if (typed.equals(memorySequence)) {
             exitSleepMode();
         } else {
-            textError.setText("اشتباهه! دوباره امتحان کن");
+            textError.setText(R.string.wrong_try_again);
             textError.setVisibility(View.VISIBLE);
             editAnswer.startAnimation(AnimationUtils.loadAnimation(this, R.anim.shake));
             editAnswer.setText("");
@@ -543,7 +554,7 @@ public class SleepLockActivity extends AppCompatActivity {
 
     private EditText buildAnswerInput() {
         EditText et = new EditText(this);
-        et.setHint("جواب");
+        et.setHint(R.string.answer_hint);
         et.setInputType(InputType.TYPE_CLASS_NUMBER);
         et.setGravity(Gravity.CENTER);
         et.setPadding(64, 24, 64, 24);

@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@color/colorBackground"
-    android:layoutDirection="rtl">
+    >
 
     <!-- Content -->
     <LinearLayout
@@ -264,7 +264,7 @@
                         android:paddingBottom="4dp">
 
                         <TextView
-                            android:text="برنامه خواب"
+                            android:text="@string/sleep_schedule_label"
                             android:textSize="13sp"
                             android:textColor="@color/colorOnSurfaceVariant"
                             android:layout_width="0dp"
