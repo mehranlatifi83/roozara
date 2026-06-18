@@ -11,6 +11,8 @@ import android.provider.Settings;
 
 import androidx.core.app.NotificationCompat;
 
+import java.util.Calendar;
+
 import ir.mehranlatifi83.salemzi.R;
 import ir.mehranlatifi83.salemzi.manager.WaterReminderManager;
 import ir.mehranlatifi83.salemzi.ui.WaterActivity;
@@ -61,8 +63,14 @@ public class WaterReminderReceiver extends BroadcastReceiver {
             showNotification(ctx, slot);
         }
 
-        // Reschedule for tomorrow
-        long tomorrow = WaterReminderManager.nextTriggerMs(h, m);
+        // Reschedule for exactly tomorrow at the same h:m (not relative to "now" to avoid drift).
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.HOUR_OF_DAY, h);
+        cal.set(Calendar.MINUTE, m);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        cal.add(Calendar.DAY_OF_YEAR, 1);
+        long tomorrow = cal.getTimeInMillis();
         android.app.AlarmManager am =
                 (android.app.AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
         Intent reschedule = new Intent(ctx, WaterReminderReceiver.class)
