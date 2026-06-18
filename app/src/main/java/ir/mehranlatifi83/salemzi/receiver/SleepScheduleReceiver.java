@@ -88,9 +88,9 @@ public class SleepScheduleReceiver extends BroadcastReceiver {
         ctx.getSharedPreferences("helth_prefs", Context.MODE_PRIVATE)
                 .edit().putBoolean("sleep_active", false).apply();
 
-        // Only ring the wake alarm if sleep was still active.
-        // If the user already exited early, sleep_active=false and we skip the alarm.
-        if (wasActive) {
+        // Only ring the wake alarm if sleep was still active AND the lock screen is not
+        // already the visible foreground activity (which handles the challenge inline).
+        if (wasActive && !SleepLockActivity.isActivityInForeground()) {
             WakeAlarmService.start(ctx);
         }
     }

@@ -13,12 +13,15 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.InputType;
+import android.graphics.Rect;
 import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -89,6 +92,8 @@ public class SleepLockActivity extends AppCompatActivity {
 
     // True while this activity is the visible foreground activity.
     private static boolean isInForeground = false;
+
+    public static boolean isActivityInForeground() { return isInForeground; }
 
     private CountDownTimer countDownTimer;
     private final Handler  handler   = new Handler(Looper.getMainLooper());
@@ -255,6 +260,23 @@ public class SleepLockActivity extends AppCompatActivity {
         if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || keyCode == KeyEvent.KEYCODE_VOLUME_UP)
             return true;
         return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            View focused = getCurrentFocus();
+            if (focused instanceof EditText) {
+                Rect rect = new Rect();
+                focused.getGlobalVisibleRect(rect);
+                if (!rect.contains((int) event.getRawX(), (int) event.getRawY())) {
+                    focused.clearFocus();
+                    ((InputMethodManager) getSystemService(INPUT_METHOD_SERVICE))
+                            .hideSoftInputFromWindow(focused.getWindowToken(), 0);
+                }
+            }
+        }
+        return super.dispatchTouchEvent(event);
     }
 
     // ─── Clock ───────────────────────────────────────────────────────────────
@@ -662,6 +684,6 @@ public class SleepLockActivity extends AppCompatActivity {
                 .apply();
 
         getSystemService(NotificationManager.class).cancel(2);
-        finish();
+        finishAndRemoveTask();
     }
 }
