@@ -223,7 +223,7 @@ public class MainActivity extends AppCompatActivity {
         int[] saved = ScheduleManager.getSleepTime(this);
         int h = saved != null ? saved[0] : 23;
         int m = saved != null ? saved[1] : 0;
-        TimePickerHelper.show(this, getString(R.string.picker_sleep_title), h, m,
+        TimePickerHelper.show(getSupportFragmentManager(), this, getString(R.string.picker_sleep_title), h, m,
                 (hour, min) -> {
                     ScheduleManager.saveSleepTime(this, hour, min);
                     showWakeTimePicker();
@@ -234,7 +234,7 @@ public class MainActivity extends AppCompatActivity {
         int[] saved = ScheduleManager.getWakeTime(this);
         int h = saved != null ? saved[0] : 7;
         int m = saved != null ? saved[1] : 0;
-        TimePickerHelper.show(this, getString(R.string.picker_wake_title), h, m,
+        TimePickerHelper.show(getSupportFragmentManager(), this, getString(R.string.picker_wake_title), h, m,
                 (hour, min) -> {
                     ScheduleManager.saveWakeTime(this, hour, min);
                     if (ScheduleManager.isScheduleEnabled(this)) {

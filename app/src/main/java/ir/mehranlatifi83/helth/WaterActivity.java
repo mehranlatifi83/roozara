@@ -117,7 +117,7 @@ public class WaterActivity extends AppCompatActivity {
     private void showMealPicker(int titleRes, int[] current, TimePickerCallback cb) {
         int h = (current != null) ? current[0] : 8;
         int m = (current != null) ? current[1] : 0;
-        TimePickerHelper.show(this, getString(titleRes), h, m,
+        TimePickerHelper.show(getSupportFragmentManager(), this, getString(titleRes), h, m,
                 (hour, min) -> cb.onTimePicked(hour, min));
     }
 
