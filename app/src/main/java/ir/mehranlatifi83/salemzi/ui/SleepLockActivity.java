@@ -208,7 +208,7 @@ public class SleepLockActivity extends AppCompatActivity {
             if (wakeAlarmActive) {
                 if (countDownTimer != null) { countDownTimer.cancel(); countDownTimer = null; }
                 handler.removeCallbacksAndMessages(null);
-                handler.post(clockTick);
+                // Do not re-post clockTick here — onResume() will do it.
                 wakeChallengeActive = true;
                 keepScreenOn();
                 showWakeChallengeUI();
@@ -663,7 +663,13 @@ public class SleepLockActivity extends AppCompatActivity {
 
     private void exitSleepMode() {
         exitCalled = true;
-        WakeAlarmService.stop(this);
+        // Only stop WakeAlarmService if the alarm is actually active (wake time reached).
+        // Calling stop() before wake time starts the service just to dismiss it, causing
+        // a brief notification flash.
+        if (getSharedPreferences(PREFS, MODE_PRIVATE)
+                .getBoolean(WakeAlarmService.KEY_WAKE_ALARM_ACTIVE, false)) {
+            WakeAlarmService.stop(this);
+        }
 
         stopService(new Intent(this, SleepVpnService.class));
         SleepVpnService.disconnect();
