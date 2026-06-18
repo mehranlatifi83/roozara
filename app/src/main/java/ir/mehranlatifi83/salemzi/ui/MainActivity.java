@@ -208,13 +208,25 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void stopSleepMode() {
+        // If the wake alarm is currently ringing, stop it first.
+        if (getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .getBoolean(WakeAlarmService.KEY_WAKE_ALARM_ACTIVE, false)) {
+            WakeAlarmService.stop(this);
+        }
+
         stopService(new Intent(this, SleepVpnService.class));
         SleepVpnService.disconnect();
         ((AudioManager) getSystemService(Context.AUDIO_SERVICE))
                 .setRingerMode(AudioManager.RINGER_MODE_NORMAL);
 
+        getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean(KEY_SLEEP_ACTIVE, false)
+                .putBoolean(WakeAlarmService.KEY_WAKE_ALARM_ACTIVE, false)
+                .remove(SleepLockActivity.KEY_SLEEP_START)
+                .apply();
+
         isSleepActive = false;
-        persistSleepState();
         updateSleepUI();
     }
 
