@@ -163,7 +163,7 @@ public class SleepLockActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         if (countDownTimer != null) countDownTimer.cancel();
-        if (!exitCalled) WakeAlarmService.stop(this);
+        handler.removeCallbacksAndMessages(null);
     }
 
     // ─── Window ──────────────────────────────────────────────────────────────

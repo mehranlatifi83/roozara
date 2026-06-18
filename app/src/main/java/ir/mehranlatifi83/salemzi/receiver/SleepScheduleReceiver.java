@@ -76,6 +76,9 @@ public class SleepScheduleReceiver extends BroadcastReceiver {
     }
 
     private void deactivateSleepMode(Context ctx) {
+        boolean wasActive = ctx.getSharedPreferences("helth_prefs", Context.MODE_PRIVATE)
+                .getBoolean("sleep_active", false);
+
         ((AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE))
                 .setRingerMode(AudioManager.RINGER_MODE_NORMAL);
 
@@ -85,7 +88,11 @@ public class SleepScheduleReceiver extends BroadcastReceiver {
         ctx.getSharedPreferences("helth_prefs", Context.MODE_PRIVATE)
                 .edit().putBoolean("sleep_active", false).apply();
 
-        WakeAlarmService.start(ctx);
+        // Only ring the wake alarm if sleep was still active.
+        // If the user already exited early, sleep_active=false and we skip the alarm.
+        if (wasActive) {
+            WakeAlarmService.start(ctx);
+        }
     }
 
     /** Posts a high-priority notification with a full-screen intent that opens the sleep lock
