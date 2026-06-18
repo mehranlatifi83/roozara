@@ -1,4 +1,4 @@
-package ir.mehranlatifi83.helth.service;
+package ir.mehranlatifi83.salemzi.service;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -11,8 +11,8 @@ import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 
-import ir.mehranlatifi83.helth.R;
-import ir.mehranlatifi83.helth.ui.MainActivity;
+import ir.mehranlatifi83.salemzi.R;
+import ir.mehranlatifi83.salemzi.ui.MainActivity;
 
 import java.io.IOException;
 

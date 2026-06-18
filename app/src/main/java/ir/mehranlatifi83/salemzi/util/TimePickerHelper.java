@@ -1,4 +1,4 @@
-package ir.mehranlatifi83.helth.util;
+package ir.mehranlatifi83.salemzi.util;
 
 import android.content.Context;
 import android.view.Gravity;

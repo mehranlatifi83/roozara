@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace 'ir.mehranlatifi83.helth'
+    namespace 'ir.mehranlatifi83.salemzi'
     compileSdk 35
 
     defaultConfig {

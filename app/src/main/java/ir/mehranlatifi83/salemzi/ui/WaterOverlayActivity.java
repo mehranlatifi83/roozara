@@ -1,4 +1,4 @@
-package ir.mehranlatifi83.helth.ui;
+package ir.mehranlatifi83.salemzi.ui;
 
 import android.os.Build;
 import android.os.Bundle;
@@ -9,8 +9,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.button.MaterialButton;
 
-import ir.mehranlatifi83.helth.R;
-import ir.mehranlatifi83.helth.receiver.WaterReminderReceiver;
+import ir.mehranlatifi83.salemzi.R;
+import ir.mehranlatifi83.salemzi.receiver.WaterReminderReceiver;
 
 public class WaterOverlayActivity extends AppCompatActivity {
 

@@ -1,4 +1,4 @@
-package ir.mehranlatifi83.helth.manager;
+package ir.mehranlatifi83.salemzi.manager;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -7,7 +7,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 
-import ir.mehranlatifi83.helth.receiver.WaterReminderReceiver;
+import ir.mehranlatifi83.salemzi.receiver.WaterReminderReceiver;
 
 import java.util.ArrayList;
 import java.util.List;

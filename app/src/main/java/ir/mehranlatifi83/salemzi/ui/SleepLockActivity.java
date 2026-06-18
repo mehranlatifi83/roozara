@@ -1,4 +1,4 @@
-package ir.mehranlatifi83.helth.ui;
+package ir.mehranlatifi83.salemzi.ui;
 
 import android.app.AlertDialog;
 import android.app.NotificationManager;
@@ -33,11 +33,11 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
-import ir.mehranlatifi83.helth.R;
-import ir.mehranlatifi83.helth.manager.ScheduleManager;
-import ir.mehranlatifi83.helth.service.SleepVpnService;
-import ir.mehranlatifi83.helth.service.WakeAlarmService;
-import ir.mehranlatifi83.helth.util.JalaliCalendar;
+import ir.mehranlatifi83.salemzi.R;
+import ir.mehranlatifi83.salemzi.manager.ScheduleManager;
+import ir.mehranlatifi83.salemzi.service.SleepVpnService;
+import ir.mehranlatifi83.salemzi.service.WakeAlarmService;
+import ir.mehranlatifi83.salemzi.util.JalaliCalendar;
 
 import java.util.Calendar;
 import java.util.Locale;

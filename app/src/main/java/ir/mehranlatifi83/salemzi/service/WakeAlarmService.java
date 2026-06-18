@@ -1,4 +1,4 @@
-package ir.mehranlatifi83.helth.service;
+package ir.mehranlatifi83.salemzi.service;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -18,8 +18,8 @@ import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 
-import ir.mehranlatifi83.helth.R;
-import ir.mehranlatifi83.helth.ui.MainActivity;
+import ir.mehranlatifi83.salemzi.R;
+import ir.mehranlatifi83.salemzi.ui.MainActivity;
 
 public class WakeAlarmService extends Service {
 
@@ -27,7 +27,7 @@ public class WakeAlarmService extends Service {
     private static final String CHANNEL_ID = "wake_alarm_channel";
     private static final int    NOTIF_ID   = 4;
 
-    public static final String ACTION_DISMISS = "ir.mehranlatifi83.helth.ACTION_DISMISS_WAKE";
+    public static final String ACTION_DISMISS = "ir.mehranlatifi83.salemzi.ACTION_DISMISS_WAKE";
     public static final String PREF_SOUND_URI = "alarm_sound_uri";
 
     private MediaPlayer player;

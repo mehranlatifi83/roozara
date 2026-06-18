@@ -1,4 +1,4 @@
-package ir.mehranlatifi83.helth.ui;
+package ir.mehranlatifi83.salemzi.ui;
 
 import android.content.Intent;
 import android.os.Build;
@@ -11,10 +11,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.materialswitch.MaterialSwitch;
 
-import ir.mehranlatifi83.helth.R;
-import ir.mehranlatifi83.helth.manager.WaterReminderManager;
-import ir.mehranlatifi83.helth.util.JalaliCalendar;
-import ir.mehranlatifi83.helth.util.TimePickerHelper;
+import ir.mehranlatifi83.salemzi.R;
+import ir.mehranlatifi83.salemzi.manager.WaterReminderManager;
+import ir.mehranlatifi83.salemzi.util.JalaliCalendar;
+import ir.mehranlatifi83.salemzi.util.TimePickerHelper;
 
 import java.util.Calendar;
 import java.util.List;

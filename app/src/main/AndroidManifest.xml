@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
@@ -54,9 +54,9 @@
             android:name=".receiver.SleepScheduleReceiver"
             android:exported="false">
             <intent-filter>
-                <action android:name="ir.mehranlatifi83.helth.ACTION_SLEEP" />
-                <action android:name="ir.mehranlatifi83.helth.ACTION_WAKE" />
-                <action android:name="ir.mehranlatifi83.helth.ACTION_SLEEP_REMINDER" />
+                <action android:name="ir.mehranlatifi83.salemzi.ACTION_SLEEP" />
+                <action android:name="ir.mehranlatifi83.salemzi.ACTION_WAKE" />
+                <action android:name="ir.mehranlatifi83.salemzi.ACTION_SLEEP_REMINDER" />
             </intent-filter>
         </receiver>
 
@@ -82,7 +82,7 @@
             android:name=".receiver.WaterReminderReceiver"
             android:exported="false">
             <intent-filter>
-                <action android:name="ir.mehranlatifi83.helth.ACTION_WATER" />
+                <action android:name="ir.mehranlatifi83.salemzi.ACTION_WATER" />
             </intent-filter>
         </receiver>
 

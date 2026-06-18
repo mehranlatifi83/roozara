@@ -1,4 +1,4 @@
-package ir.mehranlatifi83.helth.receiver;
+package ir.mehranlatifi83.salemzi.receiver;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -11,14 +11,14 @@ import android.provider.Settings;
 
 import androidx.core.app.NotificationCompat;
 
-import ir.mehranlatifi83.helth.R;
-import ir.mehranlatifi83.helth.manager.WaterReminderManager;
-import ir.mehranlatifi83.helth.ui.WaterActivity;
-import ir.mehranlatifi83.helth.ui.WaterOverlayActivity;
+import ir.mehranlatifi83.salemzi.R;
+import ir.mehranlatifi83.salemzi.manager.WaterReminderManager;
+import ir.mehranlatifi83.salemzi.ui.WaterActivity;
+import ir.mehranlatifi83.salemzi.ui.WaterOverlayActivity;
 
 public class WaterReminderReceiver extends BroadcastReceiver {
 
-    public  static final String ACTION_WATER = "ir.mehranlatifi83.helth.ACTION_WATER";
+    public  static final String ACTION_WATER = "ir.mehranlatifi83.salemzi.ACTION_WATER";
     public  static final String EXTRA_SLOT   = "slot";
     public  static final String EXTRA_HOUR   = "hour";
     public  static final String EXTRA_MIN    = "min";
