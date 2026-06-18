@@ -54,7 +54,11 @@ public class SleepScheduleReceiver extends BroadcastReceiver {
         }
 
         ctx.getSharedPreferences("helth_prefs", Context.MODE_PRIVATE)
-                .edit().putBoolean("sleep_active", true).apply();
+                .edit()
+                .putBoolean("sleep_active", true)
+                .putLong(ir.mehranlatifi83.helth.ui.SleepLockActivity.KEY_SLEEP_START,
+                        System.currentTimeMillis())
+                .apply();
 
         boolean canOverlay = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
                 && Settings.canDrawOverlays(ctx);

@@ -199,6 +199,7 @@ public class MainActivity extends AppCompatActivity {
 
         isSleepActive = true;
         persistSleepState();
+        saveSleepStartTime();
         updateSleepUI();
 
         SleepScheduleReceiver.showSleepNotification(this);
@@ -218,6 +219,11 @@ public class MainActivity extends AppCompatActivity {
     private void persistSleepState() {
         getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                 .edit().putBoolean(KEY_SLEEP_ACTIVE, isSleepActive).apply();
+    }
+
+    private void saveSleepStartTime() {
+        getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .edit().putLong(SleepLockActivity.KEY_SLEEP_START, System.currentTimeMillis()).apply();
     }
 
     // ─── Schedule time pickers ───────────────────────────────────────────────
@@ -317,14 +323,31 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void toggleLockMode() {
-        SharedPreferences prefs = getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-        boolean isTimed = SleepLockActivity.MODE_TIMED.equals(
-                prefs.getString("lock_exit_mode", SleepLockActivity.MODE_MATH));
-        prefs.edit()
-                .putString("lock_exit_mode",
-                        isTimed ? SleepLockActivity.MODE_MATH : SleepLockActivity.MODE_TIMED)
-                .apply();
-        updateLockModeUI();
+        String[] labels = {
+            getString(R.string.lock_mode_math),
+            getString(R.string.lock_mode_memory),
+            getString(R.string.lock_mode_timed)
+        };
+        String[] keys = {
+            SleepLockActivity.MODE_MATH,
+            SleepLockActivity.MODE_MEMORY,
+            SleepLockActivity.MODE_TIMED
+        };
+        String current = getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .getString("lock_exit_mode", SleepLockActivity.MODE_MATH);
+        int checkedItem = 0;
+        for (int i = 0; i < keys.length; i++) if (keys[i].equals(current)) { checkedItem = i; break; }
+
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.lock_mode_select_title)
+                .setSingleChoiceItems(labels, checkedItem, (d, which) -> {
+                    getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                            .edit().putString("lock_exit_mode", keys[which]).apply();
+                    updateLockModeUI();
+                    d.dismiss();
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
     }
 
     // ─── Onboarding ──────────────────────────────────────────────────────────
@@ -391,10 +414,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateLockModeUI() {
-        boolean isTimed = SleepLockActivity.MODE_TIMED.equals(
-                getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                        .getString("lock_exit_mode", SleepLockActivity.MODE_MATH));
-        textLockMode.setText(isTimed ? R.string.lock_mode_timed : R.string.lock_mode_math);
+        String mode = getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .getString("lock_exit_mode", SleepLockActivity.MODE_MATH);
+        int res;
+        switch (mode) {
+            case SleepLockActivity.MODE_TIMED:  res = R.string.lock_mode_timed;  break;
+            case SleepLockActivity.MODE_MEMORY: res = R.string.lock_mode_memory; break;
+            default:                            res = R.string.lock_mode_math;   break;
+        }
+        textLockMode.setText(res);
     }
 
     // ─── Sound picker ─────────────────────────────────────────────────────────

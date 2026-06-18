@@ -39,11 +39,26 @@
 
     <!-- Lock mode -->
     <string name="lock_mode_math">خروج با مسئله ریاضی</string>
+    <string name="lock_mode_memory">خروج با حافظه عددی</string>
     <string name="lock_mode_timed">قفل تا زمان بیداری</string>
     <string name="lock_mode_label">حالت قفل</string>
+    <string name="lock_mode_select_title">حالت قفل خواب</string>
     <string name="no_exit_hint">📵 تا وقت بیداری نمیتونی خارج بشی</string>
     <string name="time_until_wake">تا بیداری</string>
     <string name="no_wake_time_set">زمان بیداری تنظیم نشده</string>
+
+    <!-- Math challenge -->
+    <string name="math_challenge_prompt">برای خروج از حالت خواب، جواب بده:</string>
+
+    <!-- Memory challenge -->
+    <string name="memory_show_prompt">این اعداد رو حفظ کن:</string>
+    <string name="memory_enter_prompt">اعداد رو بنویس:</string>
+    <string name="memory_hint">اعداد</string>
+
+    <!-- Early exit (timed mode) -->
+    <string name="early_exit_btn">خروج زودهنگام 🌅</string>
+    <string name="early_exit_hint">نیمی از زمان خوابت گذشته — میتونی زودتر بیدار بشی</string>
+    <string name="early_exit_challenge">یه مسئله حل کن تا خارج بشی:</string>
 
     <!-- Overlay permission -->
     <string name="overlay_label">نمایش روی همه برنامه‌ها</string>
