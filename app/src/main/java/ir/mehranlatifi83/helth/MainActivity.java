@@ -226,6 +226,7 @@ public class MainActivity extends AppCompatActivity {
         int[] saved = ScheduleManager.getSleepTime(this);
         MaterialTimePicker picker = new MaterialTimePicker.Builder()
                 .setTimeFormat(TimeFormat.CLOCK_24H)
+                .setInputMode(MaterialTimePicker.INPUT_MODE_KEYBOARD)
                 .setHour(saved != null ? saved[0] : 23)
                 .setMinute(saved != null ? saved[1] : 0)
                 .setTitleText(R.string.picker_sleep_title)
@@ -242,6 +243,7 @@ public class MainActivity extends AppCompatActivity {
         int[] saved = ScheduleManager.getWakeTime(this);
         MaterialTimePicker picker = new MaterialTimePicker.Builder()
                 .setTimeFormat(TimeFormat.CLOCK_24H)
+                .setInputMode(MaterialTimePicker.INPUT_MODE_KEYBOARD)
                 .setHour(saved != null ? saved[0] : 7)
                 .setMinute(saved != null ? saved[1] : 0)
                 .setTitleText(R.string.picker_wake_title)

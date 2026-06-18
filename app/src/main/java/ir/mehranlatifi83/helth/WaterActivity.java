@@ -122,6 +122,7 @@ public class WaterActivity extends AppCompatActivity {
         int m = (current != null) ? current[1] : 0;
         MaterialTimePicker picker = new MaterialTimePicker.Builder()
                 .setTimeFormat(TimeFormat.CLOCK_24H)
+                .setInputMode(MaterialTimePicker.INPUT_MODE_KEYBOARD)
                 .setHour(h).setMinute(m)
                 .setTitleText(titleRes)
                 .build();
