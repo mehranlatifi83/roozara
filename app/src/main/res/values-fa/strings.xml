@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">سالم‌زی</string>
+    <string name="sleep_mode">حالت خواب</string>
+    <string name="status_active">فعال</string>
+    <string name="status_inactive">غیرفعال</string>
+    <string name="btn_enable_sleep">فعال‌سازی حالت خواب</string>
+    <string name="btn_disable_sleep">غیرفعال کردن</string>
+    <string name="label_sleep_time">زمان خواب</string>
+    <string name="label_wake_time">بیداری</string>
+    <string name="nav_sleep">خواب</string>
+    <string name="nav_water">آب</string>
+    <string name="notif_title">حالت خواب فعاله</string>
+    <string name="notif_text">اینترنت مسدود و گوشی سایلنته</string>
+    <string name="channel_name">حالت خواب</string>
+    <string name="dnd_dialog_title">نیاز به دسترسی</string>
+    <string name="dnd_dialog_message">برای سایلنت کردن گوشی، لطفاً دسترسی «مزاحم نشوید» را به برنامه بدهید.</string>
+    <string name="go_to_settings">رفتن به تنظیمات</string>
+    <string name="cancel">لغو</string>
+    <string name="confirm">تأیید</string>
+    <string name="schedule_not_set">‑‑:‑‑</string>
+    <string name="set_schedule_hint">برنامه خواب هنوز تنظیم نشده</string>
+    <string name="accessibility_service_description">سرویس حالت خواب</string>
+
+    <!-- Schedule -->
+    <string name="picker_sleep_title">ساعت خواب</string>
+    <string name="picker_wake_title">ساعت بیداری</string>
+    <string name="schedule_active">برنامه خواب فعاله</string>
+    <string name="schedule_inactive">برنامه خواب غیرفعاله</string>
+    <string name="tap_to_set">برای تنظیم ضربه بزن</string>
+    <string name="channel_schedule_name">برنامه خواب</string>
+    <string name="notif_sleep_time_title">وقت خوابه 🌙</string>
+    <string name="notif_sleep_time_text">حالت خواب فعال شد — شب بخیر</string>
+    <string name="notif_wake_title">صبح بخیر ☀️</string>
+    <string name="notif_wake_text">وقت بیداریه — حالت خواب غیرفعال شد</string>
+    <string name="alarm_permission_title">نیاز به دسترسی</string>
+    <string name="alarm_permission_message">برای تنظیم ساعت خودکار خواب، لطفاً دسترسی «تنظیم آلارم دقیق» را به برنامه بدهید.</string>
+    <string name="fullscreen_permission_title">نیاز به دسترسی</string>
+    <string name="fullscreen_permission_message">برای نمایش صفحه قفل خواب روی همه برنامه‌ها، دسترسی «نمایش تمام‌صفحه» را به برنامه بدهید.</string>
+
+    <!-- Sleep lock -->
+    <string name="sleep_time_label">وقت خوابه</string>
+    <string name="no_exit_hint">📵 تا وقت بیداری نمیتونی خارج بشی</string>
+    <string name="time_until_wake">تا بیداری</string>
+    <string name="no_wake_time_set">زمان بیداری تنظیم نشده</string>
+    <string name="sleep_schedule_label">برنامه خواب</string>
+
+    <!-- Wake challenge setting -->
+    <string name="challenge_label">چالش بیداری</string>
+    <string name="challenge_select_title">چطور ثابت کنی که بیداری؟</string>
+    <string name="challenge_simple">ساده — فقط یه دکمه</string>
+    <string name="challenge_memory">حافظه عددی</string>
+    <string name="challenge_math">مسئله ریاضی</string>
+
+    <!-- Challenge prompts (early exit and alarm) -->
+    <string name="early_exit_confirm_title">خروج زودهنگام</string>
+    <string name="early_exit_confirm_msg">مطمئنی میخوای زودتر از وقت خواب خارج بشی؟</string>
+    <string name="early_exit_math_prompt">برای خروج زودهنگام، جواب بده:</string>
+    <string name="early_exit_memory_prompt">برای خروج زودهنگام، اعداد رو حفظ کن:</string>
+    <string name="alarm_math_prompt">🔔 تا زنگ قطع بشه، مسئله رو حل کن:</string>
+    <string name="alarm_memory_prompt">🔔 تا زنگ قطع بشه، اعداد رو حفظ کن:</string>
+    <string name="memory_show_prompt">این اعداد رو حفظ کن:</string>
+    <string name="memory_enter_prompt">اعداد رو بنویس:</string>
+    <string name="memory_hint">اعداد</string>
+    <string name="memory_got_it">حفظ کردم!</string>
+    <string name="answer_hint">جواب</string>
+    <string name="retry">دوباره امتحان کن</string>
+    <string name="wrong_try_again">اشتباهه! دوباره امتحان کن</string>
+    <string name="wrong_count">نه! 😴 (%d بار اشتباه)</string>
+    <string name="wrong_go_sleep">برو بخواب! %d بار اشتباه 🌙</string>
+
+    <!-- Early exit button -->
+    <string name="early_exit_btn">خروج زودهنگام 🌅</string>
+    <string name="early_exit_hint">نیمی از زمان خوابت گذشته — میتونی زودتر بیدار بشی</string>
+
+    <!-- Overlay permission -->
+    <string name="overlay_label">نمایش روی همه برنامه‌ها</string>
+    <string name="overlay_on">فعال ✓</string>
+    <string name="overlay_off">غیرفعال</string>
+    <string name="overlay_dialog_title">نمایش روی سایر برنامه‌ها</string>
+    <string name="overlay_dialog_message">بدون این دسترسی، وقتی ساعت خواب میشه و گوشی روشنه و تو یه برنامه دیگه‌ای، فقط یه نوتیفیکیشن میاد و باید رو اون ضربه بزنی.\n\nبا دادن این دسترسی، صفحه قفل خواب مستقیماً روی هر برنامه‌ای که بازه میاد — بدون نیاز به ضربه زدن.</string>
+    <string name="dnd_onboarding_message">برنامه سالم‌زی برای حالت خواب نیاز داره که گوشی رو سایلنت کنه.\n\nلطفاً تو صفحه بعدی، کنار «سالم‌زی» رو فعال کن.</string>
+    <string name="overlay_onboarding_message">برای اینکه صفحه قفل خواب مستقیماً روی هر اپی که داری استفاده می‌کنی بیاد — بدون نیاز به ضربه زدن روی اعلان — به این دسترسی نیاز داریم.\n\nاگه ندی، زنگ خواب فقط وقتی صفحه خاموشه مستقیم باز میشه.</string>
+    <string name="later">بعداً</string>
+
+    <!-- Wake alarm -->
+    <string name="wake_alarm_notif_title">وقت بیداریه! ☀️</string>
+    <string name="wake_alarm_notif_text">ضربه بزن تا تأیید کنی بیداری</string>
+    <string name="wake_alarm_notif_challenge_text">برای انجام چالش بیداری ضربه بزن</string>
+    <string name="open_challenge">انجام چالش</string>
+    <string name="wake_alarm_channel_name">زنگ بیداری</string>
+    <string name="confirm_awake">بیدار شدم ✓</string>
+    <string name="wake_time_reached">وقت بیداریه! زنگ داره میخوره 🔔</string>
+
+    <!-- Privacy policy -->
+    <string name="privacy_policy_title">سیاست حریم خصوصی</string>
+    <string name="accept">قبول می‌کنم</string>
+    <string name="decline">نمی‌پذیرم</string>
+
+    <!-- Sound picker -->
+    <string name="sound_picker_label">صدای بیداری</string>
+    <string name="sound_default">زنگ پیش‌فرض سیستم</string>
+    <string name="sound_custom_file">فایل سفارشی</string>
+    <string name="choose_sound_title">انتخاب صدای بیداری</string>
+    <string name="choose_system_ringtone">زنگ سیستم</string>
+    <string name="choose_audio_file">فایل صوتی</string>
+
+    <!-- Sleep reminder -->
+    <string name="notif_sleep_reminder_title">۱۵ دقیقه تا وقت خواب 🌙</string>
+    <string name="notif_sleep_reminder_text">وقتشه گوشی رو بذاری کنار و آماده بشی. نور رو کم کن، یه نفس عمیق بکش — بدنت به استراحت نیاز داره 🧘</string>
+
+    <!-- Water reminders -->
+    <string name="water_channel_name">یادآور آب</string>
+    <string name="water_reminders_label">یادآورهای آب</string>
+    <string name="water_schedule_label">زمان‌بندی امروز</string>
+    <string name="water_schedule_hint">زمان‌ها طبق وعده‌ها و توصیه‌های پزشکی محاسبه شده‌اند</string>
+    <string name="water_done_btn">خوردم ✓</string>
+    <string name="water_no_times_yet">ساعت بیداری یا وعده‌ها رو تنظیم کن تا برنامه آب نمایش داده بشه</string>
+    <string name="meal_times_label">وعده‌های غذایی</string>
+    <string name="meal_breakfast">صبحانه</string>
+    <string name="meal_lunch">ناهار</string>
+    <string name="meal_dinner">شام</string>
+    <string name="meal_times_hint">۳۰ دقیقه قبل و ۹۰ دقیقه بعد از هر وعده آب توصیه نمیشه</string>
+
+    <string name="water_reminder_title_0">💧 وقت آبه!</string>
+    <string name="water_reminder_text_0">یه لیوان آب بخور — بدنت بعد از خواب به آبرسانی نیاز داره.</string>
+    <string name="water_reminder_title_1">💧 آب یادت نره</string>
+    <string name="water_reminder_text_1">هیدراته موندن باعث تمرکز و انرژی بیشتر میشه.</string>
+    <string name="water_reminder_title_2">💧 یه استراحت کوتاه</string>
+    <string name="water_reminder_text_2">بلند شو یه لیوان آب بخور — بدنت ممنونت میشه.</string>
+    <string name="water_reminder_title_3">💧 وقت آبه!</string>
+    <string name="water_reminder_text_3">اگه احساس خستگی می‌کنی، شاید کم‌آبی داری. یه لیوان آب بخور.</string>
+    <string name="water_reminder_title_4">💧 یادآور آب</string>
+    <string name="water_reminder_text_4">نیمه راه روز رو رد کردی — با یه لیوان آب به خودت انرژی بده.</string>
+    <string name="water_reminder_title_5">💧 آب بخور</string>
+    <string name="water_reminder_text_5">بدن ۶۰٪ آبه — بذار همینطور بمونه!</string>
+    <string name="water_reminder_title_6">💧 وقت آبه!</string>
+    <string name="water_reminder_text_6">قبل از شام یه لیوان آب بخور — اشتها رو کنترل می‌کنه.</string>
+    <string name="water_reminder_title_7">💧 آخرین یادآور</string>
+    <string name="water_reminder_text_7">آخرین وعده آب امروز — قبل از خواب هیدراته بمون.</string>
+</resources>

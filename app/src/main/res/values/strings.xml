@@ -1,4 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Helth</string>
-    <string name="accessibility_service_description">سرویس قطع وای‌فای برای حالت خواب</string>
+    <string name="app_name">Salemzi</string>
+    <string name="sleep_mode">Sleep Mode</string>
+    <string name="status_active">Active</string>
+    <string name="status_inactive">Inactive</string>
+    <string name="btn_enable_sleep">Enable Sleep Mode</string>
+    <string name="btn_disable_sleep">Disable</string>
+    <string name="label_sleep_time">Bedtime</string>
+    <string name="label_wake_time">Wake up</string>
+    <string name="nav_sleep">Sleep</string>
+    <string name="nav_water">Water</string>
+    <string name="notif_title">Sleep mode is active</string>
+    <string name="notif_text">Internet blocked and phone silenced</string>
+    <string name="channel_name">Sleep Mode</string>
+    <string name="dnd_dialog_title">Permission needed</string>
+    <string name="dnd_dialog_message">To silence your phone during sleep, please grant Do Not Disturb access to this app.</string>
+    <string name="go_to_settings">Go to settings</string>
+    <string name="cancel">Cancel</string>
+    <string name="confirm">Confirm</string>
+    <string name="schedule_not_set">‑‑:‑‑</string>
+    <string name="set_schedule_hint">Sleep schedule not set yet</string>
+    <string name="accessibility_service_description">Sleep mode service</string>
+
+    <!-- Schedule -->
+    <string name="picker_sleep_title">Bedtime</string>
+    <string name="picker_wake_title">Wake-up time</string>
+    <string name="schedule_active">Sleep schedule is active</string>
+    <string name="schedule_inactive">Sleep schedule is inactive</string>
+    <string name="tap_to_set">Tap to set</string>
+    <string name="channel_schedule_name">Sleep Schedule</string>
+    <string name="notif_sleep_time_title">Time to sleep 🌙</string>
+    <string name="notif_sleep_time_text">Sleep mode activated — good night</string>
+    <string name="notif_wake_title">Good morning ☀️</string>
+    <string name="notif_wake_text">Wake up time — sleep mode deactivated</string>
+    <string name="alarm_permission_title">Permission needed</string>
+    <string name="alarm_permission_message">To schedule automatic sleep alarms, please grant Exact Alarm permission to this app.</string>
+    <string name="fullscreen_permission_title">Permission needed</string>
+    <string name="fullscreen_permission_message">To show the sleep lock screen over all apps, please grant Use Full-Screen Intent permission to this app.</string>
+
+    <!-- Sleep lock -->
+    <string name="sleep_time_label">Time to sleep</string>
+    <string name="no_exit_hint">📵 You can\'t exit until wake time</string>
+    <string name="time_until_wake">until wake-up</string>
+    <string name="no_wake_time_set">Wake time not set</string>
+    <string name="sleep_schedule_label">Sleep Schedule</string>
+
+    <!-- Wake challenge setting -->
+    <string name="challenge_label">Wake challenge</string>
+    <string name="challenge_select_title">How do you prove you\'re awake?</string>
+    <string name="challenge_simple">Simple — just tap a button</string>
+    <string name="challenge_memory">Number memory</string>
+    <string name="challenge_math">Math problem</string>
+
+    <!-- Challenge prompts (early exit and alarm) -->
+    <string name="early_exit_confirm_title">Early exit</string>
+    <string name="early_exit_confirm_msg">Are you sure you want to exit sleep mode early?</string>
+    <string name="early_exit_math_prompt">Solve this to exit early:</string>
+    <string name="early_exit_memory_prompt">Memorize the numbers to exit early:</string>
+    <string name="alarm_math_prompt">🔔 Solve this to stop the alarm:</string>
+    <string name="alarm_memory_prompt">🔔 Memorize these numbers to stop the alarm:</string>
+    <string name="memory_show_prompt">Memorize these numbers:</string>
+    <string name="memory_enter_prompt">Type the numbers:</string>
+    <string name="memory_hint">Numbers</string>
+    <string name="memory_got_it">Got it!</string>
+    <string name="answer_hint">Answer</string>
+    <string name="retry">Try Again</string>
+    <string name="wrong_try_again">Wrong! Try again</string>
+    <string name="wrong_count">Nope! 😴 (%d wrong)</string>
+    <string name="wrong_go_sleep">Go back to sleep! %d wrong 🌙</string>
+
+    <!-- Early exit button -->
+    <string name="early_exit_btn">Early exit 🌅</string>
+    <string name="early_exit_hint">Half of your sleep time has passed — you can wake up early</string>
+
+    <!-- Overlay permission -->
+    <string name="overlay_label">Display over other apps</string>
+    <string name="overlay_on">Enabled ✓</string>
+    <string name="overlay_off">Disabled</string>
+    <string name="overlay_dialog_title">Display over other apps</string>
+    <string name="overlay_dialog_message">Without this permission, when sleep time arrives while your phone is on and you\'re in another app, only a notification will appear and you\'ll need to tap it.\n\nWith this permission, the sleep lock screen appears directly over any open app — no tapping needed.</string>
+    <string name="dnd_onboarding_message">Salemzi needs to silence your phone during sleep mode.\n\nPlease enable it for Salemzi on the next screen.</string>
+    <string name="overlay_onboarding_message">So the sleep lock screen appears directly over any app you\'re using — without tapping a notification — we need this permission.\n\nWithout it, the sleep lock screen only opens directly when your screen is off.</string>
+    <string name="later">Later</string>
+
+    <!-- Wake alarm -->
+    <string name="wake_alarm_notif_title">Wake up time! ☀️</string>
+    <string name="wake_alarm_notif_text">Tap to confirm you\'re awake</string>
+    <string name="wake_alarm_notif_challenge_text">Tap to complete the wake challenge</string>
+    <string name="open_challenge">Complete Challenge</string>
+    <string name="wake_alarm_channel_name">Wake Alarm</string>
+    <string name="confirm_awake">I\'m awake ✓</string>
+    <string name="wake_time_reached">Wake-up time! Alarm is ringing 🔔</string>
+
+    <!-- Privacy policy -->
+    <string name="privacy_policy_title">Privacy Policy</string>
+    <string name="accept">Accept</string>
+    <string name="decline">Decline</string>
+
+    <!-- Sound picker -->
+    <string name="sound_picker_label">Wake-up sound</string>
+    <string name="sound_default">System default ringtone</string>
+    <string name="sound_custom_file">Custom file</string>
+    <string name="choose_sound_title">Choose wake-up sound</string>
+    <string name="choose_system_ringtone">System ringtone</string>
+    <string name="choose_audio_file">Audio file</string>
+
+    <!-- Sleep reminder -->
+    <string name="notif_sleep_reminder_title">15 minutes until bedtime 🌙</string>
+    <string name="notif_sleep_reminder_text">Time to put your phone down and wind down. Dim the lights, take a deep breath — your body needs rest 🧘</string>
+
+    <!-- Water reminders -->
+    <string name="water_channel_name">Water Reminder</string>
+    <string name="water_reminders_label">Water reminders</string>
+    <string name="water_schedule_label">Today\'s schedule</string>
+    <string name="water_schedule_hint">Times are calculated based on meals and medical guidelines</string>
+    <string name="water_done_btn">Done ✓</string>
+    <string name="water_no_times_yet">Set your wake time or meals to see your water schedule</string>
+    <string name="meal_times_label">Meal times</string>
+    <string name="meal_breakfast">Breakfast</string>
+    <string name="meal_lunch">Lunch</string>
+    <string name="meal_dinner">Dinner</string>
+    <string name="meal_times_hint">Drinking water 30 min before and 90 min after meals is not recommended</string>
+
+    <string name="water_reminder_title_0">💧 Hydration time!</string>
+    <string name="water_reminder_text_0">Drink a glass of water — your body needs hydration after sleep.</string>
+    <string name="water_reminder_title_1">💧 Don\'t forget water</string>
+    <string name="water_reminder_text_1">Staying hydrated improves focus and energy.</string>
+    <string name="water_reminder_title_2">💧 Quick break</string>
+    <string name="water_reminder_text_2">Get up and drink a glass of water — your body will thank you.</string>
+    <string name="water_reminder_title_3">💧 Hydration time!</string>
+    <string name="water_reminder_text_3">Feeling tired? You might be dehydrated. Drink a glass of water.</string>
+    <string name="water_reminder_title_4">💧 Water reminder</string>
+    <string name="water_reminder_text_4">Halfway through your day — boost yourself with a glass of water.</string>
+    <string name="water_reminder_title_5">💧 Drink water</string>
+    <string name="water_reminder_text_5">Your body is 60% water — keep it that way!</string>
+    <string name="water_reminder_title_6">💧 Hydration time!</string>
+    <string name="water_reminder_text_6">Drink water before dinner — it helps control appetite.</string>
+    <string name="water_reminder_title_7">💧 Last reminder</string>
+    <string name="water_reminder_text_7">Last water for today — stay hydrated before bed.</string>
 </resources>

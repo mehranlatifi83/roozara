@@ -1,0 +1,57 @@
+package ir.mehranlatifi83.salemzi.ui;
+
+import android.os.Build;
+import android.os.Bundle;
+import android.widget.TextView;
+
+import androidx.activity.OnBackPressedCallback;
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.android.material.button.MaterialButton;
+
+import ir.mehranlatifi83.salemzi.R;
+import ir.mehranlatifi83.salemzi.receiver.WaterReminderReceiver;
+
+public class WaterOverlayActivity extends AppCompatActivity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            setShowWhenLocked(true);
+            setTurnScreenOn(true);
+        }
+
+        setContentView(R.layout.activity_water_overlay);
+
+        int slot = getIntent().getIntExtra(WaterReminderReceiver.EXTRA_SLOT, 0);
+        setupMessage(slot);
+
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override public void handleOnBackPressed() { finish(); }
+        });
+
+        MaterialButton btnDone = findViewById(R.id.btn_water_done);
+        btnDone.setOnClickListener(v -> finish());
+    }
+
+    private void setupMessage(int slot) {
+        int[] titleRes = {
+            R.string.water_reminder_title_0, R.string.water_reminder_title_1,
+            R.string.water_reminder_title_2, R.string.water_reminder_title_3,
+            R.string.water_reminder_title_4, R.string.water_reminder_title_5,
+            R.string.water_reminder_title_6, R.string.water_reminder_title_7,
+        };
+        int[] textRes = {
+            R.string.water_reminder_text_0, R.string.water_reminder_text_1,
+            R.string.water_reminder_text_2, R.string.water_reminder_text_3,
+            R.string.water_reminder_text_4, R.string.water_reminder_text_5,
+            R.string.water_reminder_text_6, R.string.water_reminder_text_7,
+        };
+
+        int safe = (slot >= 0 && slot < titleRes.length) ? slot : 0;
+        ((TextView) findViewById(R.id.text_overlay_title)).setText(titleRes[safe]);
+        ((TextView) findViewById(R.id.text_overlay_body)).setText(textRes[safe]);
+    }
+}

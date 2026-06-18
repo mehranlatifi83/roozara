@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorSleepBackground"
+    android:fillViewport="true"
+    >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:paddingTop="72dp"
+        android:paddingBottom="48dp"
+        android:paddingStart="32dp"
+        android:paddingEnd="32dp">
+
+        <!-- Moon icon -->
+        <ImageView
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_moon"
+            android:tint="@color/colorPrimary"/>
+
+        <TextView
+            android:layout_marginTop="16dp"
+            android:text="@string/sleep_time_label"
+            android:textSize="18sp"
+            android:textColor="@color/colorSleepText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <!-- Clock -->
+        <TextView
+            android:id="@+id/text_clock"
+            android:textSize="72sp"
+            android:textColor="@color/colorSleepClock"
+            android:fontFamily="sans-serif-light"
+            android:letterSpacing="0.05"
+            android:layout_marginTop="8dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <!-- Date -->
+        <TextView
+            android:id="@+id/text_lock_date"
+            android:textSize="14sp"
+            android:textColor="@color/colorSleepSubtext"
+            android:layout_marginTop="4dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <!-- Divider -->
+        <View
+            android:layout_width="160dp"
+            android:layout_height="1dp"
+            android:layout_marginTop="40dp"
+            android:layout_marginBottom="40dp"
+            android:background="@color/colorSleepDivider"/>
+
+        <!-- ══════════ CHALLENGE SECTION (math or memory, shown when alarm fires or early exit) ══════════ -->
+        <LinearLayout
+            android:id="@+id/section_math"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:visibility="gone">
+
+            <!-- Dynamic prompt: math or memory phase 1 -->
+            <TextView
+                android:id="@+id/text_challenge_prompt"
+                android:text="@string/alarm_math_prompt"
+                android:textSize="13sp"
+                android:textColor="@color/colorSleepSubtext"
+                android:gravity="center"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <!-- Math problem or memory sequence digits -->
+            <TextView
+                android:id="@+id/text_math_problem"
+                android:textSize="42sp"
+                android:textColor="@color/colorPrimary"
+                android:fontFamily="sans-serif-medium"
+                android:layout_marginTop="20dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <!-- Memory phase 2: prompt to type the sequence -->
+            <TextView
+                android:id="@+id/text_memory_enter_prompt"
+                android:text="@string/memory_enter_prompt"
+                android:textSize="13sp"
+                android:textColor="@color/colorSleepSubtext"
+                android:gravity="center"
+                android:layout_marginTop="16dp"
+                android:visibility="gone"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <!-- Answer row -->
+            <LinearLayout
+                android:layout_width="240dp"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="24dp"
+                android:gravity="center_vertical">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/input_layout_answer"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    app:boxStrokeColor="@color/colorDivider"
+                    app:hintTextColor="@color/colorOnSurfaceVariant">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/edit_answer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="number"
+                        android:hint="جواب"
+                        android:textColor="@color/colorOnSurface"
+                        android:textSize="20sp"
+                        android:gravity="center"
+                        android:imeOptions="actionDone"
+                        android:maxLines="1"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_confirm"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:text="@string/confirm"
+                    android:textSize="14sp"
+                    app:cornerRadius="12dp"/>
+            </LinearLayout>
+
+            <!-- Error message -->
+            <TextView
+                android:id="@+id/text_error"
+                android:textSize="13sp"
+                android:textColor="@color/colorError"
+                android:layout_marginTop="12dp"
+                android:visibility="invisible"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <!-- Try Again — only shown during memory challenge -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_retry_memory"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/retry"
+                android:textSize="14sp"
+                android:visibility="gone"
+                app:cornerRadius="24dp"
+                style="@style/Widget.Material3.Button.OutlinedButton"/>
+
+        </LinearLayout>
+
+        <!-- ══════════ COUNTDOWN SECTION (always shown during sleep) ══════════ -->
+        <LinearLayout
+            android:id="@+id/section_timed"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/text_no_exit_hint"
+                android:text="@string/no_exit_hint"
+                android:textSize="14sp"
+                android:textColor="@color/colorSleepSubtext"
+                android:gravity="center"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <!-- Countdown display -->
+            <TextView
+                android:id="@+id/text_countdown"
+                android:textSize="52sp"
+                android:textColor="@color/colorPrimary"
+                android:fontFamily="sans-serif-light"
+                android:letterSpacing="0.05"
+                android:layout_marginTop="28dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:id="@+id/text_countdown_label"
+                android:text="@string/time_until_wake"
+                android:textSize="13sp"
+                android:textColor="@color/colorSleepSubtext"
+                android:layout_marginTop="6dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <!-- Shown only when countdown finishes and alarm is ringing -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_confirm_awake"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:text="@string/confirm_awake"
+                android:textSize="16sp"
+                android:visibility="gone"
+                app:cornerRadius="28dp"/>
+
+            <!-- Early exit: shown after half of scheduled sleep time has passed -->
+            <View
+                android:id="@+id/divider_early_exit"
+                android:layout_width="120dp"
+                android:layout_height="1dp"
+                android:layout_marginTop="36dp"
+                android:background="@color/colorSleepDivider"
+                android:visibility="gone"/>
+
+            <TextView
+                android:id="@+id/text_early_exit_hint"
+                android:text="@string/early_exit_hint"
+                android:textSize="12sp"
+                android:textColor="@color/colorSleepSubtext"
+                android:gravity="center"
+                android:layout_marginTop="12dp"
+                android:visibility="gone"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_early_exit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="@string/early_exit_btn"
+                android:textSize="14sp"
+                android:visibility="gone"
+                app:cornerRadius="24dp"
+                style="@style/Widget.Material3.Button.OutlinedButton"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>
