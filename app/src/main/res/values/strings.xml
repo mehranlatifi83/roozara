@@ -78,7 +78,7 @@
     <string name="overlay_off">Disabled</string>
     <string name="overlay_dialog_title">Display over other apps</string>
     <string name="overlay_dialog_message">Without this permission, when sleep time arrives while your phone is on and you\'re in another app, only a notification will appear and you\'ll need to tap it.\n\nWith this permission, the sleep lock screen appears directly over any open app — no tapping needed.</string>
-    <string name="dnd_onboarding_message">Helth needs to silence your phone during sleep mode.\n\nPlease enable it for Helth on the next screen.</string>
+    <string name="dnd_onboarding_message">Salemzi needs to silence your phone during sleep mode.\n\nPlease enable it for Salemzi on the next screen.</string>
     <string name="overlay_onboarding_message">So the sleep lock screen appears directly over any app you\'re using — without tapping a notification — we need this permission.\n\nWithout it, the sleep lock screen only opens directly when your screen is off.</string>
     <string name="later">Later</string>
 

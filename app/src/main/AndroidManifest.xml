@@ -19,7 +19,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Helth"
+        android:theme="@style/Theme.Salemzi"
         tools:targetApi="31">
 
         <activity
@@ -36,7 +36,7 @@
             android:exported="false"
             android:showWhenLocked="true"
             android:turnScreenOn="true"
-            android:theme="@style/Theme.Helth"
+            android:theme="@style/Theme.Salemzi"
             android:launchMode="singleTop"
             android:excludeFromRecents="true" />
 
@@ -74,7 +74,7 @@
             android:exported="false"
             android:showWhenLocked="true"
             android:turnScreenOn="true"
-            android:theme="@style/Theme.Helth"
+            android:theme="@style/Theme.Salemzi"
             android:launchMode="singleTop"
             android:excludeFromRecents="true" />
 
