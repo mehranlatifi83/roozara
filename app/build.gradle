@@ -7,9 +7,9 @@ android {
     compileSdk 35
 
     defaultConfig {
-        applicationId "ir.mehranlatifi83.helth"
+        applicationId "ir.mehranlatifi83.salemzi"
         minSdk 30
-        targetSdk 34
+        targetSdk 35
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

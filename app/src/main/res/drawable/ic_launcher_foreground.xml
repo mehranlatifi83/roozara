@@ -1,30 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Salemzi / سالم‌زی  —  app icon foreground
+  Canvas 108×108dp, safe zone (18,18)→(90,90)
+
+  Design: crescent moon (sleep) + leaf (health) + three star dots (night)
+  Moon path: Material Design moon icon scaled ×2.22, center at (54,40)
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path android:pathData="M31,63.928c0,0 6.4,-11 12.1,-13.1c7.2,-2.6 26,-1.4 26,-1.4l38.1,38.1L107,108.928l-32,-1L31,63.928z">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                android:endX="85.84757"
-                android:endY="92.4963"
-                android:startX="42.9492"
-                android:startY="49.59793"
-                android:type="linear">
-                <item
-                    android:color="#44000000"
-                    android:offset="0.0" />
-                <item
-                    android:color="#00000000"
-                    android:offset="1.0" />
-            </gradient>
-        </aapt:attr>
-    </path>
+
+    <!-- ── Crescent moon ───────────────────────────────────────────────────── -->
     <path
-        android:fillColor="#FFFFFF"
-        android:fillType="nonZero"
-        android:pathData="M65.3,45.828l3.8,-6.6c0.2,-0.4 0.1,-0.9 -0.3,-1.1c-0.4,-0.2 -0.9,-0.1 -1.1,0.3l-3.9,6.7c-6.3,-2.8 -13.4,-2.8 -19.7,0l-3.9,-6.7c-0.2,-0.4 -0.7,-0.5 -1.1,-0.3C38.8,38.328 38.7,38.828 38.9,39.228l3.8,6.6C36.2,49.428 31.7,56.028 31,63.928h46C76.3,56.028 71.8,49.428 65.3,45.828zM43.4,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2c-0.3,-0.7 -0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C45.3,56.528 44.5,57.328 43.4,57.328L43.4,57.328zM64.6,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2s-0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C66.5,56.528 65.6,57.328 64.6,57.328L64.6,57.328z"
-        android:strokeWidth="1"
-        android:strokeColor="#00000000" />
+        android:fillColor="#818CF8"
+        android:pathData="M54,20
+            c-11.04,0 -20,8.95 -20,20
+            s8.95,20 20,20 20,-8.95 20,-20
+            c0,-1.02 -0.09,-2.04 -0.22,-3.02
+            c-2.18,3.04 -5.73,5.02 -9.77,5.02
+            c-6.62,0 -12,-5.38 -12,-12
+            c0,-4.02 1.98,-7.60 5.02,-9.77
+            C56.01,20.08 55.02,20 54,20z" />
+
+    <!-- ── Thin stem connecting moon to leaf ──────────────────────────────── -->
+    <path
+        android:strokeColor="#4ADE80"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M54,60 L54,65" />
+
+    <!-- ── Leaf ────────────────────────────────────────────────────────────── -->
+    <path
+        android:fillColor="#4ADE80"
+        android:pathData="M54,65
+            C46,68 42,74 45,80
+            C47,85 54,88 54,88
+            C54,88 61,85 63,80
+            C66,74 62,68 54,65z" />
+
+    <!-- Leaf centre vein -->
+    <path
+        android:strokeColor="#0F172A"
+        android:strokeWidth="1.4"
+        android:strokeLineCap="round"
+        android:pathData="M54,67 L54,86" />
+
+    <!-- ── Three star dots ─────────────────────────────────────────────────── -->
+    <!-- Top-left star -->
+    <path
+        android:fillColor="#C7D2FE"
+        android:pathData="M36,28 m-2.5,0 a2.5,2.5 0 1,0 5,0 a2.5,2.5 0 1,0 -5,0" />
+    <!-- Top-right star (smaller) -->
+    <path
+        android:fillColor="#C7D2FE"
+        android:pathData="M73,23 m-1.5,0 a1.5,1.5 0 1,0 3,0 a1.5,1.5 0 1,0 -3,0" />
+    <!-- Right-side star -->
+    <path
+        android:fillColor="#C7D2FE"
+        android:pathData="M79,43 m-2,0 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0" />
+
 </vector>
