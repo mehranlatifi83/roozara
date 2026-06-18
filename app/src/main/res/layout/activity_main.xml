@@ -213,7 +213,7 @@
                         android:background="?attr/selectableItemBackground">
 
                         <TextView
-                            android:text="@string/lock_mode_label"
+                            android:text="@string/challenge_label"
                             android:textSize="13sp"
                             android:textColor="@color/colorOnSurfaceVariant"
                             android:layout_width="0dp"

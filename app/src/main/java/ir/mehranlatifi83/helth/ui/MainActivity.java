@@ -324,25 +324,25 @@ public class MainActivity extends AppCompatActivity {
 
     private void toggleLockMode() {
         String[] labels = {
-            getString(R.string.lock_mode_math),
-            getString(R.string.lock_mode_memory),
-            getString(R.string.lock_mode_timed)
+            getString(R.string.challenge_simple),
+            getString(R.string.challenge_memory),
+            getString(R.string.challenge_math)
         };
         String[] keys = {
-            SleepLockActivity.MODE_MATH,
-            SleepLockActivity.MODE_MEMORY,
-            SleepLockActivity.MODE_TIMED
+            SleepLockActivity.CHALLENGE_SIMPLE,
+            SleepLockActivity.CHALLENGE_MEMORY,
+            SleepLockActivity.CHALLENGE_MATH
         };
         String current = getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                .getString("lock_exit_mode", SleepLockActivity.MODE_MATH);
+                .getString(SleepLockActivity.PREF_CHALLENGE, SleepLockActivity.CHALLENGE_SIMPLE);
         int checkedItem = 0;
         for (int i = 0; i < keys.length; i++) if (keys[i].equals(current)) { checkedItem = i; break; }
 
         new AlertDialog.Builder(this)
-                .setTitle(R.string.lock_mode_select_title)
+                .setTitle(R.string.challenge_select_title)
                 .setSingleChoiceItems(labels, checkedItem, (d, which) -> {
                     getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                            .edit().putString("lock_exit_mode", keys[which]).apply();
+                            .edit().putString(SleepLockActivity.PREF_CHALLENGE, keys[which]).apply();
                     updateLockModeUI();
                     d.dismiss();
                 })
@@ -415,12 +415,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateLockModeUI() {
         String mode = getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                .getString("lock_exit_mode", SleepLockActivity.MODE_MATH);
+                .getString(SleepLockActivity.PREF_CHALLENGE, SleepLockActivity.CHALLENGE_SIMPLE);
         int res;
         switch (mode) {
-            case SleepLockActivity.MODE_TIMED:  res = R.string.lock_mode_timed;  break;
-            case SleepLockActivity.MODE_MEMORY: res = R.string.lock_mode_memory; break;
-            default:                            res = R.string.lock_mode_math;   break;
+            case SleepLockActivity.CHALLENGE_MEMORY: res = R.string.challenge_memory; break;
+            case SleepLockActivity.CHALLENGE_MATH:   res = R.string.challenge_math;   break;
+            default:                                 res = R.string.challenge_simple;  break;
         }
         textLockMode.setText(res);
     }

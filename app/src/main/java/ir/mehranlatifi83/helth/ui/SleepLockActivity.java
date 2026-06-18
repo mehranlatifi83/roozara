@@ -45,39 +45,40 @@ import java.util.Random;
 
 public class SleepLockActivity extends AppCompatActivity {
 
-    private static final String PREFS           = "helth_prefs";
-    private static final String KEY_LOCK_MODE   = "lock_exit_mode";
-    public static final  String KEY_SLEEP_START = "sleep_start_time";
+    // ─── Public constants ────────────────────────────────────────────────────
+    public static final String CHALLENGE_SIMPLE = "simple";
+    public static final String CHALLENGE_MEMORY = "memory";
+    public static final String CHALLENGE_MATH   = "math";
+    public static final String PREF_CHALLENGE   = "wake_challenge_mode";
+    public static final String KEY_SLEEP_START  = "sleep_start_time";
 
-    public static final String MODE_MATH   = "math";
-    public static final String MODE_MEMORY = "memory";
-    public static final String MODE_TIMED  = "timed";
+    private static final String PREFS = "helth_prefs";
 
-    // Math / memory section views (section_math is shared for both)
-    private LinearLayout      sectionMath;
-    private TextView          textChallengePrompt;
-    private TextView          textMathProblem;
-    private TextView          textMemoryEnterPrompt;
-    private TextInputEditText editAnswer;
-    private TextInputLayout   inputLayoutAnswer;
-    private TextView          textError;
+    // ─── Views ───────────────────────────────────────────────────────────────
 
-    // Timed mode views
+    // Countdown section (always visible during sleep)
     private LinearLayout   sectionTimed;
     private TextView       textCountdown;
-    private TextView       textNoExitHint;
     private TextView       textCountdownLabel;
+    private TextView       textNoExitHint;
     private MaterialButton btnConfirmAwake;
     private MaterialButton btnEarlyExit;
     private View           dividerEarlyExit;
     private TextView       textEarlyExitHint;
 
-    // Clock views (shared)
+    // Challenge section (math or memory — shown for alarm and early exit)
+    private LinearLayout      sectionChallenge;
+    private TextView          textChallengePrompt;
+    private TextView          textMathProblem;
+    private TextInputEditText editAnswer;
+    private TextInputLayout   inputLayoutAnswer;
+    private TextView          textError;
+
+    // Clock (shared)
     private TextView textClock;
     private TextView textLockDate;
 
-    // State
-    private String  currentMode;
+    // ─── State ───────────────────────────────────────────────────────────────
     private int     mathAnswer;
     private String  memorySequence;
     private int     wrongCount       = 0;
@@ -85,19 +86,14 @@ public class SleepLockActivity extends AppCompatActivity {
     private boolean screenTurningOff = false;
 
     private CountDownTimer countDownTimer;
-    private final Handler  handler    = new Handler(Looper.getMainLooper());
-    private final Runnable clockTick  = new Runnable() {
-        @Override public void run() {
-            updateClock();
-            handler.postDelayed(this, 1000);
-        }
+    private final Handler  handler   = new Handler(Looper.getMainLooper());
+    private final Runnable clockTick = new Runnable() {
+        @Override public void run() { updateClock(); handler.postDelayed(this, 1000); }
     };
 
     private final BroadcastReceiver screenOffReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context ctx, Intent intent) {
-            if (Intent.ACTION_SCREEN_OFF.equals(intent.getAction())) {
-                screenTurningOff = true;
-            }
+            if (Intent.ACTION_SCREEN_OFF.equals(intent.getAction())) screenTurningOff = true;
         }
     };
 
@@ -120,34 +116,28 @@ public class SleepLockActivity extends AppCompatActivity {
         hideSystemBars();
         blockBackButton();
         bindViews();
-
-        currentMode = getSharedPreferences(PREFS, MODE_PRIVATE)
-                .getString(KEY_LOCK_MODE, MODE_MATH);
-
         updateClock();
-
-        switch (currentMode) {
-            case MODE_TIMED:  setupTimedMode();  break;
-            case MODE_MEMORY: setupMemoryMode(); break;
-            default:          setupMathMode();   break;
-        }
+        startCountdown();
+        scheduleEarlyExitUnlock();
     }
 
     private void bindViews() {
-        textClock             = findViewById(R.id.text_clock);
-        textLockDate          = findViewById(R.id.text_lock_date);
-        sectionMath           = findViewById(R.id.section_math);
-        textChallengePrompt   = findViewById(R.id.text_challenge_prompt);
-        textMathProblem       = findViewById(R.id.text_math_problem);
-        textMemoryEnterPrompt = findViewById(R.id.text_memory_enter_prompt);
-        sectionTimed          = findViewById(R.id.section_timed);
-        textCountdown         = findViewById(R.id.text_countdown);
-        textNoExitHint        = findViewById(R.id.text_no_exit_hint);
-        textCountdownLabel    = findViewById(R.id.text_countdown_label);
-        btnConfirmAwake       = findViewById(R.id.btn_confirm_awake);
-        btnEarlyExit          = findViewById(R.id.btn_early_exit);
-        dividerEarlyExit      = findViewById(R.id.divider_early_exit);
-        textEarlyExitHint     = findViewById(R.id.text_early_exit_hint);
+        textClock           = findViewById(R.id.text_clock);
+        textLockDate        = findViewById(R.id.text_lock_date);
+        sectionTimed        = findViewById(R.id.section_timed);
+        textCountdown       = findViewById(R.id.text_countdown);
+        textCountdownLabel  = findViewById(R.id.text_countdown_label);
+        textNoExitHint      = findViewById(R.id.text_no_exit_hint);
+        btnConfirmAwake     = findViewById(R.id.btn_confirm_awake);
+        btnEarlyExit        = findViewById(R.id.btn_early_exit);
+        dividerEarlyExit    = findViewById(R.id.divider_early_exit);
+        textEarlyExitHint   = findViewById(R.id.text_early_exit_hint);
+        sectionChallenge    = findViewById(R.id.section_math);
+        textChallengePrompt = findViewById(R.id.text_challenge_prompt);
+        textMathProblem     = findViewById(R.id.text_math_problem);
+        inputLayoutAnswer   = findViewById(R.id.input_layout_answer);
+        editAnswer          = findViewById(R.id.edit_answer);
+        textError           = findViewById(R.id.text_error);
     }
 
     @Override
@@ -164,7 +154,6 @@ public class SleepLockActivity extends AppCompatActivity {
         super.onPause();
         handler.removeCallbacks(clockTick);
         try { unregisterReceiver(screenOffReceiver); } catch (IllegalArgumentException ignored) {}
-        // Re-launch to prevent HOME-button escape, but not when screen turns off.
         if (!exitCalled && !isFinishing() && !screenTurningOff) {
             SleepLockActivity.launch(this);
         }
@@ -177,15 +166,14 @@ public class SleepLockActivity extends AppCompatActivity {
         if (!exitCalled) WakeAlarmService.stop(this);
     }
 
-    // ─── Window / immersive mode ─────────────────────────────────────────────
+    // ─── Window ──────────────────────────────────────────────────────────────
 
     private void setupWindowFlags() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true);
             setTurnScreenOn(true);
         } else {
-            getWindow().addFlags(
-                    WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
                     | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
         }
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
@@ -211,9 +199,8 @@ public class SleepLockActivity extends AppCompatActivity {
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || keyCode == KeyEvent.KEYCODE_VOLUME_UP)
             return true;
-        }
         return super.onKeyDown(keyCode, event);
     }
 
@@ -223,93 +210,196 @@ public class SleepLockActivity extends AppCompatActivity {
         Calendar cal = Calendar.getInstance();
         textClock.setText(String.format(Locale.getDefault(),
                 "%02d:%02d", cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE)));
-        textLockDate.setText(buildPersianDate(cal));
-    }
-
-    private String buildPersianDate(Calendar cal) {
         String[] days   = {"یکشنبه","دوشنبه","سه‌شنبه","چهارشنبه","پنجشنبه","جمعه","شنبه"};
         String[] months = {"فروردین","اردیبهشت","خرداد","تیر","مرداد","شهریور",
                            "مهر","آبان","آذر","دی","بهمن","اسفند"};
         int[] j = JalaliCalendar.toJalali(
-                cal.get(Calendar.YEAR),
-                cal.get(Calendar.MONTH) + 1,
+                cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1,
                 cal.get(Calendar.DAY_OF_MONTH));
-        return days[cal.get(Calendar.DAY_OF_WEEK) - 1] + "،  " + j[2] + " " + months[j[1] - 1];
+        textLockDate.setText(days[cal.get(Calendar.DAY_OF_WEEK) - 1]
+                + "،  " + j[2] + " " + months[j[1] - 1]);
     }
 
-    // ─── Math mode ───────────────────────────────────────────────────────────
+    // ─── Countdown ───────────────────────────────────────────────────────────
 
-    private void setupMathMode() {
-        sectionMath.setVisibility(View.VISIBLE);
+    private void startCountdown() {
+        int[] wake = ScheduleManager.getWakeTime(this);
+        if (wake == null) { textCountdown.setText(R.string.no_wake_time_set); return; }
+
+        long wakeMs    = nextWakeMs(wake[0], wake[1]);
+        long remaining = wakeMs - System.currentTimeMillis();
+
+        countDownTimer = new CountDownTimer(remaining, 1000) {
+            @Override public void onTick(long ms) {
+                long h = ms / 3_600_000, m = (ms % 3_600_000) / 60_000,
+                     s = (ms % 60_000) / 1_000;
+                textCountdown.setText(String.format(Locale.getDefault(), "%02d:%02d:%02d", h, m, s));
+            }
+            @Override public void onFinish() {
+                textCountdown.setText("00:00:00");
+                onWakeTimeReached();
+            }
+        }.start();
+    }
+
+    private long nextWakeMs(int hour, int min) {
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.HOUR_OF_DAY, hour);
+        cal.set(Calendar.MINUTE, min);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        if (cal.getTimeInMillis() <= System.currentTimeMillis())
+            cal.add(Calendar.DAY_OF_YEAR, 1);
+        return cal.getTimeInMillis();
+    }
+
+    // ─── Early exit ──────────────────────────────────────────────────────────
+
+    private void scheduleEarlyExitUnlock() {
+        long sleepStartMs = getSharedPreferences(PREFS, MODE_PRIVATE)
+                .getLong(KEY_SLEEP_START, 0);
+        long now    = System.currentTimeMillis();
+        int[] wake  = ScheduleManager.getWakeTime(this);
+        long wakeMs = (wake != null) ? nextWakeMs(wake[0], wake[1]) : 0;
+
+        long halfSleepMs = (sleepStartMs > 0 && wakeMs > sleepStartMs)
+                ? (wakeMs - sleepStartMs) / 2
+                : 4 * 60 * 60 * 1000L;
+
+        long delay = (sleepStartMs + halfSleepMs) - now;
+        if (delay <= 0) showEarlyExitButton();
+        else            handler.postDelayed(this::showEarlyExitButton, delay);
+    }
+
+    private void showEarlyExitButton() {
+        if (exitCalled) return;
+        dividerEarlyExit.setVisibility(View.VISIBLE);
+        textEarlyExitHint.setVisibility(View.VISIBLE);
+        btnEarlyExit.setVisibility(View.VISIBLE);
+        btnEarlyExit.setOnClickListener(v -> onEarlyExitTapped());
+    }
+
+    private void onEarlyExitTapped() {
+        String mode = challengeMode();
+        switch (mode) {
+            case CHALLENGE_SIMPLE:
+                new AlertDialog.Builder(this)
+                        .setTitle(R.string.early_exit_confirm_title)
+                        .setMessage(R.string.early_exit_confirm_msg)
+                        .setPositiveButton(R.string.confirm_awake, (d, w) -> exitSleepMode())
+                        .setNegativeButton(R.string.cancel, null)
+                        .show();
+                break;
+            case CHALLENGE_MEMORY:
+                showEarlyExitMemoryDialog();
+                break;
+            default:
+                showEarlyExitMathDialog();
+                break;
+        }
+    }
+
+    private void showEarlyExitMathDialog() {
+        int[] qa = randomMathProblem(0);
+        EditText et = buildAnswerInput();
+        new AlertDialog.Builder(this)
+                .setTitle(getString(R.string.early_exit_math_prompt))
+                .setMessage(mathProblemString(qa))
+                .setView(et)
+                .setCancelable(true)
+                .setPositiveButton("تأیید", (d, w) -> {
+                    if (checkInput(et, qa[0])) exitSleepMode();
+                    else handler.post(this::showEarlyExitMathDialog);
+                })
+                .setNegativeButton(getString(R.string.cancel), null)
+                .show();
+    }
+
+    private void showEarlyExitMemoryDialog() {
+        // Phase 1: show sequence
+        String seq = randomDigitSequence(5);
+        new AlertDialog.Builder(this)
+                .setTitle(getString(R.string.memory_show_prompt))
+                .setMessage(seq)
+                .setCancelable(false)
+                .setPositiveButton("حفظ کردم!", (d, w) -> showEarlyExitMemoryInput(seq))
+                .show();
+    }
+
+    private void showEarlyExitMemoryInput(String seq) {
+        EditText et = buildAnswerInput();
+        new AlertDialog.Builder(this)
+                .setTitle(getString(R.string.memory_enter_prompt))
+                .setView(et)
+                .setCancelable(true)
+                .setPositiveButton("تأیید", (d, w) -> {
+                    String typed = et.getText().toString().trim();
+                    if (typed.equals(seq)) exitSleepMode();
+                    else handler.post(this::showEarlyExitMemoryDialog);
+                })
+                .setNegativeButton(getString(R.string.cancel), null)
+                .show();
+    }
+
+    // ─── Wake alarm challenge ─────────────────────────────────────────────────
+
+    private void onWakeTimeReached() {
+        keepScreenOn();
+        WakeAlarmService.start(this);
+        // Hide countdown details, hide early exit
+        textCountdownLabel.setVisibility(View.GONE);
+        dividerEarlyExit.setVisibility(View.GONE);
+        textEarlyExitHint.setVisibility(View.GONE);
+        btnEarlyExit.setVisibility(View.GONE);
+
+        String mode = challengeMode();
+        switch (mode) {
+            case CHALLENGE_MATH:
+                showAlarmMathChallenge();
+                break;
+            case CHALLENGE_MEMORY:
+                showAlarmMemoryChallenge();
+                break;
+            default:
+                showAlarmSimple();
+                break;
+        }
+    }
+
+    /** Simple mode: just tap the button to confirm awake and stop alarm. */
+    private void showAlarmSimple() {
+        textNoExitHint.setText(R.string.wake_time_reached);
+        btnConfirmAwake.setVisibility(View.VISIBLE);
+        btnConfirmAwake.setOnClickListener(v -> exitSleepMode());
+    }
+
+    /** Math mode: switch layout to show math challenge inline; alarm keeps ringing. */
+    private void showAlarmMathChallenge() {
         sectionTimed.setVisibility(View.GONE);
-
-        inputLayoutAnswer = findViewById(R.id.input_layout_answer);
-        editAnswer        = findViewById(R.id.edit_answer);
-        textError         = findViewById(R.id.text_error);
+        sectionChallenge.setVisibility(View.VISIBLE);
+        inputLayoutAnswer.setVisibility(View.VISIBLE);
+        textChallengePrompt.setText(R.string.alarm_math_prompt);
         MaterialButton btnConfirm = findViewById(R.id.btn_confirm);
 
-        textChallengePrompt.setText(R.string.math_challenge_prompt);
-        textMemoryEnterPrompt.setVisibility(View.GONE);
+        generateAlarmMathProblem();
 
-        generateMathProblem();
-
-        btnConfirm.setOnClickListener(v -> checkMathAnswer());
+        btnConfirm.setOnClickListener(v -> checkAlarmMathAnswer());
         editAnswer.setOnEditorActionListener((v, actionId, event) -> {
-            if (actionId == EditorInfo.IME_ACTION_DONE) { checkMathAnswer(); return true; }
+            if (actionId == EditorInfo.IME_ACTION_DONE) { checkAlarmMathAnswer(); return true; }
             return false;
         });
     }
 
-    /**
-     * Random arithmetic problem. Difficulty scales with wrong-answer count:
-     *  Level 0: simple (×, +, or −)  Level 1: chained  Level 2: double multiplication
-     */
-    private void generateMathProblem() {
-        Random rnd = new Random();
-        String problem;
-        int difficulty = Math.min(wrongCount / 2, 2);
-
-        switch (difficulty) {
-            case 0: {
-                int type = rnd.nextInt(3);
-                if (type == 0) {
-                    int a = 12 + rnd.nextInt(29); int b = 3 + rnd.nextInt(7);
-                    mathAnswer = a * b; problem = a + " × " + b + " = ؟";
-                } else if (type == 1) {
-                    int a = 30 + rnd.nextInt(60); int b = 20 + rnd.nextInt(40);
-                    mathAnswer = a + b; problem = a + " + " + b + " = ؟";
-                } else {
-                    int b = 10 + rnd.nextInt(40); int a = b + 20 + rnd.nextInt(40);
-                    mathAnswer = a - b; problem = a + " - " + b + " = ؟";
-                }
-                break;
-            }
-            case 1: {
-                int a = 3 + rnd.nextInt(7); int b = 3 + rnd.nextInt(7);
-                int c = 11 + rnd.nextInt(29); int base = a * b;
-                if (rnd.nextBoolean() || base <= c) {
-                    mathAnswer = base + c; problem = "(" + a + " × " + b + ") + " + c + " = ؟";
-                } else {
-                    mathAnswer = base - c; problem = "(" + a + " × " + b + ") - " + c + " = ؟";
-                }
-                break;
-            }
-            default: {
-                int a = 3 + rnd.nextInt(7); int b = 3 + rnd.nextInt(7);
-                int c = 3 + rnd.nextInt(6); int d = 3 + rnd.nextInt(6);
-                mathAnswer = a * b + c * d;
-                problem = "(" + a + " × " + b + ") + (" + c + " × " + d + ") = ؟";
-                break;
-            }
-        }
-
+    private void generateAlarmMathProblem() {
+        int[] qa = randomMathProblem(Math.min(wrongCount / 2, 2));
+        mathAnswer = qa[0];
         textMathProblem.setVisibility(View.VISIBLE);
-        textMathProblem.setText(problem);
-        if (editAnswer != null) editAnswer.setText("");
-        if (textError   != null) textError.setVisibility(View.INVISIBLE);
+        textMathProblem.setText(mathProblemString(qa));
+        editAnswer.setText("");
+        textError.setVisibility(View.INVISIBLE);
     }
 
-    private void checkMathAnswer() {
+    private void checkAlarmMathAnswer() {
         String raw = editAnswer.getText() == null ? "" : editAnswer.getText().toString().trim();
         if (raw.isEmpty()) return;
         try {
@@ -317,77 +407,61 @@ public class SleepLockActivity extends AppCompatActivity {
                 exitSleepMode();
             } else {
                 wrongCount++;
-                onWrongMathAnswer();
+                String msg = wrongCount < 3 ? "اشتباهه! دوباره امتحان کن"
+                        : wrongCount < 6 ? "نه! 😴 (" + wrongCount + " بار اشتباه)"
+                        : "برو بخواب! " + wrongCount + " بار اشتباه 🌙";
+                textError.setText(msg);
+                textError.setVisibility(View.VISIBLE);
+                editAnswer.startAnimation(AnimationUtils.loadAnimation(this, R.anim.shake));
+                editAnswer.setText("");
+                editAnswer.postDelayed(this::generateAlarmMathProblem, 900);
             }
         } catch (NumberFormatException e) {
-            wrongCount++;
-            onWrongMathAnswer();
+            editAnswer.setText("");
         }
     }
 
-    private void onWrongMathAnswer() {
-        String msg;
-        if      (wrongCount < 3) msg = "اشتباهه! دوباره امتحان کن";
-        else if (wrongCount < 6) msg = "نه! بذار بخوابی 😴  (" + wrongCount + " بار اشتباه)";
-        else                     msg = "برو بخواب! " + wrongCount + " بار اشتباه زدی 🌙";
-
-        textError.setText(msg);
-        textError.setVisibility(View.VISIBLE);
-        editAnswer.startAnimation(AnimationUtils.loadAnimation(this, R.anim.shake));
-        editAnswer.setText("");
-        editAnswer.postDelayed(this::generateMathProblem, 900);
-    }
-
-    // ─── Memory mode ─────────────────────────────────────────────────────────
-
-    private void setupMemoryMode() {
-        sectionMath.setVisibility(View.VISIBLE);
+    /** Memory mode: switch to challenge section, show sequence, then ask user to type it. */
+    private void showAlarmMemoryChallenge() {
         sectionTimed.setVisibility(View.GONE);
-
-        inputLayoutAnswer = findViewById(R.id.input_layout_answer);
-        editAnswer        = findViewById(R.id.edit_answer);
-        textError         = findViewById(R.id.text_error);
-        MaterialButton btnConfirm = findViewById(R.id.btn_confirm);
-
-        // Hide input until after the reveal phase
+        sectionChallenge.setVisibility(View.VISIBLE);
         inputLayoutAnswer.setVisibility(View.GONE);
+        MaterialButton btnConfirm = findViewById(R.id.btn_confirm);
         btnConfirm.setVisibility(View.GONE);
-        textMemoryEnterPrompt.setVisibility(View.GONE);
 
-        startMemoryReveal(btnConfirm);
+        startAlarmMemoryReveal(btnConfirm);
     }
 
-    private void startMemoryReveal(MaterialButton btnConfirm) {
-        Random rnd = new Random();
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 5; i++) sb.append(rnd.nextInt(10));
-        memorySequence = sb.toString();
-
-        textChallengePrompt.setText(R.string.memory_show_prompt);
+    private void startAlarmMemoryReveal(MaterialButton btnConfirm) {
+        memorySequence = randomDigitSequence(5);
+        textChallengePrompt.setText(R.string.alarm_memory_prompt);
         textMathProblem.setText(memorySequence);
         textMathProblem.setVisibility(View.VISIBLE);
         textError.setVisibility(View.INVISIBLE);
+        inputLayoutAnswer.setVisibility(View.GONE);
+        btnConfirm.setVisibility(View.GONE);
 
-        // After 4 seconds: hide sequence, show input
         handler.postDelayed(() -> {
             textMathProblem.setVisibility(View.GONE);
             textChallengePrompt.setText(R.string.memory_enter_prompt);
-            textMemoryEnterPrompt.setVisibility(View.GONE); // prompt is now in textChallengePrompt
             inputLayoutAnswer.setVisibility(View.VISIBLE);
             inputLayoutAnswer.setHint(getString(R.string.memory_hint));
             editAnswer.setInputType(InputType.TYPE_CLASS_NUMBER);
+            editAnswer.setText("");
             editAnswer.requestFocus();
             btnConfirm.setVisibility(View.VISIBLE);
 
-            btnConfirm.setOnClickListener(v -> checkMemoryAnswer(btnConfirm));
+            btnConfirm.setOnClickListener(v -> checkAlarmMemoryAnswer(btnConfirm));
             editAnswer.setOnEditorActionListener((v, actionId, event) -> {
-                if (actionId == EditorInfo.IME_ACTION_DONE) { checkMemoryAnswer(btnConfirm); return true; }
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    checkAlarmMemoryAnswer(btnConfirm); return true;
+                }
                 return false;
             });
         }, 4000);
     }
 
-    private void checkMemoryAnswer(MaterialButton btnConfirm) {
+    private void checkAlarmMemoryAnswer(MaterialButton btnConfirm) {
         if (editAnswer.getText() == null) return;
         String typed = editAnswer.getText().toString().trim();
         if (typed.isEmpty()) return;
@@ -401,141 +475,84 @@ public class SleepLockActivity extends AppCompatActivity {
             editAnswer.setText("");
             inputLayoutAnswer.setVisibility(View.GONE);
             btnConfirm.setVisibility(View.GONE);
-            editAnswer.postDelayed(() -> startMemoryReveal(btnConfirm), 1000);
+            editAnswer.postDelayed(() -> startAlarmMemoryReveal(btnConfirm), 1000);
         }
     }
 
-    // ─── Timed mode ──────────────────────────────────────────────────────────
+    // ─── Helpers ─────────────────────────────────────────────────────────────
 
-    private void setupTimedMode() {
-        sectionMath.setVisibility(View.GONE);
-        sectionTimed.setVisibility(View.VISIBLE);
-        startCountdown();
-        scheduleEarlyExitUnlock();
+    private String challengeMode() {
+        return getSharedPreferences(PREFS, MODE_PRIVATE)
+                .getString(PREF_CHALLENGE, CHALLENGE_SIMPLE);
     }
 
-    private void startCountdown() {
-        int[] wake = ScheduleManager.getWakeTime(this);
-        if (wake == null) {
-            textCountdown.setText(R.string.no_wake_time_set);
-            return;
-        }
-
-        long wakeMs    = nextWakeMs(wake[0], wake[1]);
-        long remaining = wakeMs - System.currentTimeMillis();
-
-        countDownTimer = new CountDownTimer(remaining, 1000) {
-            @Override public void onTick(long ms) {
-                long h = ms / 3_600_000;
-                long m = (ms % 3_600_000) / 60_000;
-                long s = (ms % 60_000) / 1_000;
-                textCountdown.setText(
-                        String.format(Locale.getDefault(), "%02d:%02d:%02d", h, m, s));
-            }
-            @Override public void onFinish() {
-                textCountdown.setText("00:00:00");
-                onWakeTimeReached();
-            }
-        }.start();
-    }
-
-    /** Reveals the "early exit" button once the user has slept at least half the planned duration. */
-    private void scheduleEarlyExitUnlock() {
-        long sleepStartMs = getSharedPreferences(PREFS, MODE_PRIVATE)
-                .getLong(KEY_SLEEP_START, 0);
-        long now = System.currentTimeMillis();
-
-        int[] wake = ScheduleManager.getWakeTime(this);
-        long wakeMs = (wake != null) ? nextWakeMs(wake[0], wake[1]) : 0;
-
-        long halfSleepMs;
-        if (sleepStartMs > 0 && wakeMs > sleepStartMs) {
-            halfSleepMs = (wakeMs - sleepStartMs) / 2;
-        } else {
-            halfSleepMs = 4 * 60 * 60 * 1000L;
-        }
-
-        long unlockAt = sleepStartMs + halfSleepMs;
-        long delay = unlockAt - now;
-
-        if (delay <= 0) {
-            showEarlyExitButton();
-        } else {
-            handler.postDelayed(this::showEarlyExitButton, delay);
-        }
-    }
-
-    private void showEarlyExitButton() {
-        if (exitCalled) return;
-        dividerEarlyExit.setVisibility(View.VISIBLE);
-        textEarlyExitHint.setVisibility(View.VISIBLE);
-        btnEarlyExit.setVisibility(View.VISIBLE);
-        btnEarlyExit.setOnClickListener(v -> showEarlyExitChallenge());
-    }
-
-    /** Shows a one-shot math dialog; loops until correct or user cancels. */
-    private void showEarlyExitChallenge() {
+    /**
+     * Returns int[]{answer, a, b, op} where op: 0=mult,1=add,2=sub.
+     * difficulty 0 = easy; 1 = chained; 2 = double multiply.
+     */
+    private int[] randomMathProblem(int difficulty) {
         Random rnd = new Random();
-        int[] ops = {0, 1, 2};  // 0=multiply, 1=add, 2=subtract
-        int op = ops[rnd.nextInt(3)];
-        int answer; String problem;
-        if (op == 0) {
-            int a = 12 + rnd.nextInt(19); int b = 3 + rnd.nextInt(7);
-            answer = a * b; problem = a + " × " + b + " = ؟";
-        } else if (op == 1) {
-            int a = 30 + rnd.nextInt(50); int b = 20 + rnd.nextInt(40);
-            answer = a + b; problem = a + " + " + b + " = ؟";
-        } else {
-            int b = 10 + rnd.nextInt(30); int a = b + 20 + rnd.nextInt(40);
-            answer = a - b; problem = a + " - " + b + " = ؟";
+        switch (difficulty) {
+            case 1: {
+                int a = 3 + rnd.nextInt(7), b = 3 + rnd.nextInt(7);
+                int c = 11 + rnd.nextInt(29), base = a * b;
+                if (rnd.nextBoolean() || base <= c)
+                    return new int[]{base + c, a, b, 10, c};  // op=10: (a×b)+c
+                else
+                    return new int[]{base - c, a, b, 11, c};  // op=11: (a×b)-c
+            }
+            case 2: {
+                int a = 3 + rnd.nextInt(7), b = 3 + rnd.nextInt(7);
+                int c = 3 + rnd.nextInt(6), d = 3 + rnd.nextInt(6);
+                return new int[]{a * b + c * d, a, b, 20, c, d};  // op=20: (a×b)+(c×d)
+            }
+            default: {
+                int type = rnd.nextInt(3);
+                if (type == 0) {
+                    int a = 12 + rnd.nextInt(29), b = 3 + rnd.nextInt(7);
+                    return new int[]{a * b, a, b, 0};  // a×b
+                } else if (type == 1) {
+                    int a = 30 + rnd.nextInt(60), b = 20 + rnd.nextInt(40);
+                    return new int[]{a + b, a, b, 1};  // a+b
+                } else {
+                    int b = 10 + rnd.nextInt(40), a = b + 20 + rnd.nextInt(40);
+                    return new int[]{a - b, a, b, 2};  // a-b
+                }
+            }
         }
+    }
 
+    private String mathProblemString(int[] qa) {
+        // qa = {answer, a, b, opCode, [c, [d]]}
+        int opCode = qa[3];
+        if (opCode == 0)  return qa[1] + " × " + qa[2] + " = ؟";
+        if (opCode == 1)  return qa[1] + " + " + qa[2] + " = ؟";
+        if (opCode == 2)  return qa[1] + " - " + qa[2] + " = ؟";
+        if (opCode == 10) return "(" + qa[1] + " × " + qa[2] + ") + " + qa[4] + " = ؟";
+        if (opCode == 11) return "(" + qa[1] + " × " + qa[2] + ") - " + qa[4] + " = ؟";
+        if (opCode == 20) return "(" + qa[1] + " × " + qa[2] + ") + (" + qa[4] + " × " + qa[5] + ") = ؟";
+        return "؟";
+    }
+
+    private String randomDigitSequence(int length) {
+        Random rnd = new Random();
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < length; i++) sb.append(rnd.nextInt(10));
+        return sb.toString();
+    }
+
+    private EditText buildAnswerInput() {
         EditText et = new EditText(this);
         et.setHint("جواب");
         et.setInputType(InputType.TYPE_CLASS_NUMBER);
         et.setGravity(Gravity.CENTER);
         et.setPadding(64, 24, 64, 24);
-
-        new AlertDialog.Builder(this)
-                .setTitle(getString(R.string.early_exit_challenge))
-                .setMessage(problem)
-                .setView(et)
-                .setCancelable(true)
-                .setPositiveButton("تأیید", (d, w) -> {
-                    String typed = et.getText().toString().trim();
-                    try {
-                        if (Integer.parseInt(typed) == answer) exitSleepMode();
-                        else handler.post(this::showEarlyExitChallenge);
-                    } catch (NumberFormatException e) {
-                        handler.post(this::showEarlyExitChallenge);
-                    }
-                })
-                .setNegativeButton("لغو", null)
-                .show();
+        return et;
     }
 
-    private void onWakeTimeReached() {
-        keepScreenOn();
-        WakeAlarmService.start(this);
-        textNoExitHint.setText(R.string.wake_time_reached);
-        textCountdownLabel.setVisibility(View.GONE);
-        dividerEarlyExit.setVisibility(View.GONE);
-        textEarlyExitHint.setVisibility(View.GONE);
-        btnEarlyExit.setVisibility(View.GONE);
-        btnConfirmAwake.setVisibility(View.VISIBLE);
-        btnConfirmAwake.setOnClickListener(v -> exitSleepMode());
-    }
-
-    private long nextWakeMs(int hour, int min) {
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.HOUR_OF_DAY, hour);
-        cal.set(Calendar.MINUTE, min);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MILLISECOND, 0);
-        if (cal.getTimeInMillis() <= System.currentTimeMillis()) {
-            cal.add(Calendar.DAY_OF_YEAR, 1);
-        }
-        return cal.getTimeInMillis();
+    private boolean checkInput(EditText et, int expected) {
+        try { return Integer.parseInt(et.getText().toString().trim()) == expected; }
+        catch (NumberFormatException e) { return false; }
     }
 
     // ─── Exit ────────────────────────────────────────────────────────────────

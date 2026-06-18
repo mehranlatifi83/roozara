@@ -62,18 +62,19 @@
             android:layout_marginBottom="40dp"
             android:background="@color/colorSleepDivider"/>
 
-        <!-- ══════════ MATH / MEMORY CHALLENGE SECTION ══════════ -->
+        <!-- ══════════ CHALLENGE SECTION (math or memory, shown when alarm fires or early exit) ══════════ -->
         <LinearLayout
             android:id="@+id/section_math"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:gravity="center">
+            android:gravity="center"
+            android:visibility="gone">
 
             <!-- Dynamic prompt: math or memory phase 1 -->
             <TextView
                 android:id="@+id/text_challenge_prompt"
-                android:text="@string/math_challenge_prompt"
+                android:text="@string/alarm_math_prompt"
                 android:textSize="13sp"
                 android:textColor="@color/colorSleepSubtext"
                 android:gravity="center"
@@ -154,14 +155,13 @@
 
         </LinearLayout>
 
-        <!-- ══════════ TIMED MODE SECTION ══════════ -->
+        <!-- ══════════ COUNTDOWN SECTION (always shown during sleep) ══════════ -->
         <LinearLayout
             android:id="@+id/section_timed"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:gravity="center"
-            android:visibility="gone">
+            android:gravity="center">
 
             <TextView
                 android:id="@+id/text_no_exit_hint"
