@@ -27,9 +27,6 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.materialswitch.MaterialSwitch;
-import com.google.android.material.timepicker.MaterialTimePicker;
-import com.google.android.material.timepicker.TimeFormat;
-
 import java.util.Calendar;
 import java.util.Locale;
 
@@ -224,41 +221,29 @@ public class MainActivity extends AppCompatActivity {
 
     private void showSleepTimePicker() {
         int[] saved = ScheduleManager.getSleepTime(this);
-        MaterialTimePicker picker = new MaterialTimePicker.Builder()
-                .setTimeFormat(TimeFormat.CLOCK_24H)
-                .setInputMode(MaterialTimePicker.INPUT_MODE_KEYBOARD)
-                .setHour(saved != null ? saved[0] : 23)
-                .setMinute(saved != null ? saved[1] : 0)
-                .setTitleText(R.string.picker_sleep_title)
-                .build();
-
-        picker.addOnPositiveButtonClickListener(v -> {
-            ScheduleManager.saveSleepTime(this, picker.getHour(), picker.getMinute());
-            showWakeTimePicker();
-        });
-        picker.show(getSupportFragmentManager(), "sleep_picker");
+        int h = saved != null ? saved[0] : 23;
+        int m = saved != null ? saved[1] : 0;
+        TimePickerHelper.show(this, getString(R.string.picker_sleep_title), h, m,
+                (hour, min) -> {
+                    ScheduleManager.saveSleepTime(this, hour, min);
+                    showWakeTimePicker();
+                });
     }
 
     private void showWakeTimePicker() {
         int[] saved = ScheduleManager.getWakeTime(this);
-        MaterialTimePicker picker = new MaterialTimePicker.Builder()
-                .setTimeFormat(TimeFormat.CLOCK_24H)
-                .setInputMode(MaterialTimePicker.INPUT_MODE_KEYBOARD)
-                .setHour(saved != null ? saved[0] : 7)
-                .setMinute(saved != null ? saved[1] : 0)
-                .setTitleText(R.string.picker_wake_title)
-                .build();
-
-        picker.addOnPositiveButtonClickListener(v -> {
-            ScheduleManager.saveWakeTime(this, picker.getHour(), picker.getMinute());
-            if (ScheduleManager.isScheduleEnabled(this)) {
-                ScheduleManager.scheduleSleepAlarm(this);
-                ScheduleManager.scheduleWakeAlarm(this);
-                ScheduleManager.scheduleSleepReminderAlarm(this);
-            }
-            updateScheduleUI();
-        });
-        picker.show(getSupportFragmentManager(), "wake_picker");
+        int h = saved != null ? saved[0] : 7;
+        int m = saved != null ? saved[1] : 0;
+        TimePickerHelper.show(this, getString(R.string.picker_wake_title), h, m,
+                (hour, min) -> {
+                    ScheduleManager.saveWakeTime(this, hour, min);
+                    if (ScheduleManager.isScheduleEnabled(this)) {
+                        ScheduleManager.scheduleSleepAlarm(this);
+                        ScheduleManager.scheduleWakeAlarm(this);
+                        ScheduleManager.scheduleSleepReminderAlarm(this);
+                    }
+                    updateScheduleUI();
+                });
     }
 
     private void onScheduleSwitchChanged(boolean checked) {

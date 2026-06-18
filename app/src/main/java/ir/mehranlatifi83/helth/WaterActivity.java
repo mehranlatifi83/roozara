@@ -10,9 +10,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.materialswitch.MaterialSwitch;
-import com.google.android.material.timepicker.MaterialTimePicker;
-import com.google.android.material.timepicker.TimeFormat;
-
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
@@ -120,15 +117,8 @@ public class WaterActivity extends AppCompatActivity {
     private void showMealPicker(int titleRes, int[] current, TimePickerCallback cb) {
         int h = (current != null) ? current[0] : 8;
         int m = (current != null) ? current[1] : 0;
-        MaterialTimePicker picker = new MaterialTimePicker.Builder()
-                .setTimeFormat(TimeFormat.CLOCK_24H)
-                .setInputMode(MaterialTimePicker.INPUT_MODE_KEYBOARD)
-                .setHour(h).setMinute(m)
-                .setTitleText(titleRes)
-                .build();
-        picker.addOnPositiveButtonClickListener(v ->
-                cb.onTimePicked(picker.getHour(), picker.getMinute()));
-        picker.show(getSupportFragmentManager(), "meal_picker");
+        TimePickerHelper.show(this, getString(titleRes), h, m,
+                (hour, min) -> cb.onTimePicked(hour, min));
     }
 
     @FunctionalInterface
