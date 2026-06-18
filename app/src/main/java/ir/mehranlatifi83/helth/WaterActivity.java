@@ -1,7 +1,9 @@
 package ir.mehranlatifi83.helth;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -70,9 +72,27 @@ public class WaterActivity extends AppCompatActivity {
     private void setupSwitch() {
         switchWater.setChecked(WaterReminderManager.isEnabled(this));
         switchWater.setOnCheckedChangeListener((btn, checked) -> {
+            if (checked && !WaterReminderManager.canScheduleExact(this)) {
+                btn.setChecked(false);
+                showAlarmPermissionDialog();
+                return;
+            }
             WaterReminderManager.setEnabled(this, checked);
             refreshUI();
         });
+    }
+
+    private void showAlarmPermissionDialog() {
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle(R.string.alarm_permission_title)
+                .setMessage(R.string.alarm_permission_message)
+                .setPositiveButton(R.string.go_to_settings, (d, w) -> {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        startActivity(new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM));
+                    }
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
     }
 
     private void setupMealRows() {

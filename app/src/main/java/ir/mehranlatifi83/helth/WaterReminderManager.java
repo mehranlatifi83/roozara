@@ -123,7 +123,8 @@ public class WaterReminderManager {
         // If spacing would be tighter than min gap, widen as much as possible
         if (interval < MIN_GAP_MIN) interval = MIN_GAP_MIN;
 
-        int lastClock = Integer.MIN_VALUE;
+        // Use -1000 (not MIN_VALUE) to avoid integer overflow in the gap check below
+        int lastClock = -1000;
         for (int i = 1; i <= COUNT; i++) {
             int targetOffset = interval * i;
             if (targetOffset > totalValid) break;
@@ -148,14 +149,20 @@ public class WaterReminderManager {
     // ─── Alarm scheduling ─────────────────────────────────────────────────────
 
     public static void scheduleAll(Context ctx) {
+        if (!canScheduleExact(ctx)) return; // permission not granted on Android 12+
         cancelAll(ctx);
         List<int[]> slots = computeReminderTimes(ctx);
         AlarmManager am = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
         for (int i = 0; i < slots.size() && i < COUNT; i++) {
             int[] slot = slots.get(i);
-            am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,
-                    nextTriggerMs(slot[0], slot[1]),
-                    buildIntent(ctx, i, slot[0], slot[1]));
+            try {
+                am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,
+                        nextTriggerMs(slot[0], slot[1]),
+                        buildIntent(ctx, i, slot[0], slot[1]));
+            } catch (SecurityException ignored) {
+                // Exact alarm permission revoked mid-session; skip remaining slots
+                break;
+            }
         }
     }
 
