@@ -98,6 +98,15 @@ public class SleepLockActivity extends AppCompatActivity {
         }
     };
 
+    // Delayed relaunch posted in onPause so ACTION_SCREEN_OFF can arrive first.
+    private final Runnable relaunchIfNeeded = () -> {
+        try { unregisterReceiver(screenOffReceiver); } catch (IllegalArgumentException ignored) {}
+        if (!isDestroyed() && !isFinishing() && !exitCalled && !screenTurningOff) {
+            SleepLockActivity.launch(SleepLockActivity.this);
+        }
+        screenTurningOff = false;
+    };
+
     // ─── Entry point ─────────────────────────────────────────────────────────
 
     public static void launch(Context ctx) {
@@ -153,20 +162,30 @@ public class SleepLockActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        // Cancel any pending relaunch (e.g., we resumed before the 300 ms fired).
+        handler.removeCallbacks(relaunchIfNeeded);
         screenTurningOff = false;
+        // Unregister before re-registering to avoid duplicate registration if onPause's
+        // delayed runnable hasn't fired yet.
+        try { unregisterReceiver(screenOffReceiver); } catch (IllegalArgumentException ignored) {}
         registerReceiver(screenOffReceiver, new IntentFilter(Intent.ACTION_SCREEN_OFF));
         handler.post(clockTick);
         hideSystemBars();
+        if (wakeChallengeActive) keepScreenOn();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         handler.removeCallbacks(clockTick);
-        try { unregisterReceiver(screenOffReceiver); } catch (IllegalArgumentException ignored) {}
-        if (!exitCalled && !isFinishing() && !screenTurningOff) {
-            SleepLockActivity.launch(this);
+        // During wake alarm, clear FLAG_KEEP_SCREEN_ON so the power button can turn
+        // the screen off. It is restored in onResume() when the user comes back.
+        if (wakeChallengeActive) {
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
+        // Delay the relaunch decision by 300 ms so ACTION_SCREEN_OFF has time to set
+        // screenTurningOff before we decide whether to bring the lock screen back.
+        handler.postDelayed(relaunchIfNeeded, 300);
     }
 
     @Override
@@ -192,6 +211,7 @@ public class SleepLockActivity extends AppCompatActivity {
         super.onDestroy();
         if (countDownTimer != null) countDownTimer.cancel();
         handler.removeCallbacksAndMessages(null);
+        try { unregisterReceiver(screenOffReceiver); } catch (IllegalArgumentException ignored) {}
     }
 
     // ─── Window ──────────────────────────────────────────────────────────────
