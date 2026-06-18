@@ -85,6 +85,8 @@
     <!-- Wake alarm -->
     <string name="wake_alarm_notif_title">وقت بیداریه! ☀️</string>
     <string name="wake_alarm_notif_text">ضربه بزن تا تأیید کنی بیداری</string>
+    <string name="wake_alarm_notif_challenge_text">برای انجام چالش بیداری ضربه بزن</string>
+    <string name="open_challenge">انجام چالش</string>
     <string name="wake_alarm_channel_name">زنگ بیداری</string>
     <string name="confirm_awake">بیدار شدم ✓</string>
     <string name="wake_time_reached">وقت بیداریه! زنگ داره میخوره 🔔</string>

@@ -20,6 +20,7 @@ import androidx.core.app.NotificationCompat;
 
 import ir.mehranlatifi83.salemzi.R;
 import ir.mehranlatifi83.salemzi.ui.MainActivity;
+import ir.mehranlatifi83.salemzi.ui.SleepLockActivity;
 
 public class WakeAlarmService extends Service {
 
@@ -27,8 +28,9 @@ public class WakeAlarmService extends Service {
     private static final String CHANNEL_ID = "wake_alarm_channel";
     private static final int    NOTIF_ID   = 4;
 
-    public static final String ACTION_DISMISS = "ir.mehranlatifi83.salemzi.ACTION_DISMISS_WAKE";
-    public static final String PREF_SOUND_URI = "alarm_sound_uri";
+    public static final String ACTION_DISMISS       = "ir.mehranlatifi83.salemzi.ACTION_DISMISS_WAKE";
+    public static final String PREF_SOUND_URI       = "alarm_sound_uri";
+    public static final String KEY_WAKE_ALARM_ACTIVE = "wake_alarm_active";
 
     private MediaPlayer player;
     private boolean     cleanupDone = false;
@@ -49,6 +51,10 @@ public class WakeAlarmService extends Service {
             stopSelf();
             return START_NOT_STICKY;
         }
+
+        // Mark wake alarm active so SleepLockActivity knows to show the challenge on start.
+        getSharedPreferences("helth_prefs", MODE_PRIVATE)
+                .edit().putBoolean(KEY_WAKE_ALARM_ACTIVE, true).apply();
 
         playAlarm();
         return START_STICKY;
@@ -138,7 +144,10 @@ public class WakeAlarmService extends Service {
                 .setRingerMode(AudioManager.RINGER_MODE_NORMAL);
 
         getSharedPreferences("helth_prefs", MODE_PRIVATE)
-                .edit().putBoolean("sleep_active", false).apply();
+                .edit()
+                .putBoolean("sleep_active", false)
+                .putBoolean(KEY_WAKE_ALARM_ACTIVE, false)
+                .apply();
 
         getSystemService(NotificationManager.class).cancel(2);
     }
@@ -146,33 +155,46 @@ public class WakeAlarmService extends Service {
     // ─── Notification ─────────────────────────────────────────────────────────
 
     private Notification buildNotification() {
+        String challengeMode = getSharedPreferences("helth_prefs", MODE_PRIVATE)
+                .getString(SleepLockActivity.PREF_CHALLENGE, SleepLockActivity.CHALLENGE_SIMPLE);
+        boolean isSimple = SleepLockActivity.CHALLENGE_SIMPLE.equals(challengeMode);
+
         Intent dismissIntent = new Intent(this, WakeAlarmService.class).setAction(ACTION_DISMISS);
-        // Use getForegroundService on API 26+ to avoid IllegalStateException when the
-        // notification action is tapped while the app is in the background.
         PendingIntent dismissPi = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
                 ? PendingIntent.getForegroundService(this, 0, dismissIntent,
                         PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE)
                 : PendingIntent.getService(this, 0, dismissIntent,
                         PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-        PendingIntent fullScreenPi = PendingIntent.getActivity(
+        // fullScreenIntent always opens the challenge screen, not MainActivity.
+        PendingIntent challengePi = PendingIntent.getActivity(
                 this, 11,
-                new Intent(this, MainActivity.class)
-                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK),
+                new Intent(this, SleepLockActivity.class)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP
+                                | Intent.FLAG_ACTIVITY_SINGLE_TOP),
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-        return new NotificationCompat.Builder(this, CHANNEL_ID)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle(getString(R.string.wake_alarm_notif_title))
-                .setContentText(getString(R.string.wake_alarm_notif_text))
+                .setContentText(isSimple
+                        ? getString(R.string.wake_alarm_notif_text)
+                        : getString(R.string.wake_alarm_notif_challenge_text))
                 .setSmallIcon(R.drawable.ic_sun)
                 .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
                 .setOngoing(true)
                 .setAutoCancel(false)
-                .setFullScreenIntent(fullScreenPi, true)
-                .addAction(0, getString(R.string.confirm_awake), dismissPi)
-                .setContentIntent(dismissPi)
-                .build();
+                .setFullScreenIntent(challengePi, true)
+                .setContentIntent(isSimple ? dismissPi : challengePi);
+
+        if (isSimple) {
+            builder.addAction(0, getString(R.string.confirm_awake), dismissPi);
+        } else {
+            // Non-simple: force user to go through the challenge — no direct dismiss.
+            builder.addAction(0, getString(R.string.open_challenge), challengePi);
+        }
+
+        return builder.build();
     }
 
     private void ensureChannel() {

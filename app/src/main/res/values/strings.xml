@@ -85,6 +85,8 @@
     <!-- Wake alarm -->
     <string name="wake_alarm_notif_title">Wake up time! ☀️</string>
     <string name="wake_alarm_notif_text">Tap to confirm you\'re awake</string>
+    <string name="wake_alarm_notif_challenge_text">Tap to complete the wake challenge</string>
+    <string name="open_challenge">Complete Challenge</string>
     <string name="wake_alarm_channel_name">Wake Alarm</string>
     <string name="confirm_awake">I\'m awake ✓</string>
     <string name="wake_time_reached">Wake-up time! Alarm is ringing 🔔</string>

@@ -81,9 +81,10 @@ public class SleepLockActivity extends AppCompatActivity {
     // ─── State ───────────────────────────────────────────────────────────────
     private int     mathAnswer;
     private String  memorySequence;
-    private int     wrongCount       = 0;
-    private boolean exitCalled       = false;
-    private boolean screenTurningOff = false;
+    private int     wrongCount        = 0;
+    private boolean exitCalled        = false;
+    private boolean screenTurningOff  = false;
+    private boolean wakeChallengeActive = false;
 
     private CountDownTimer countDownTimer;
     private final Handler  handler   = new Handler(Looper.getMainLooper());
@@ -117,8 +118,17 @@ public class SleepLockActivity extends AppCompatActivity {
         blockBackButton();
         bindViews();
         updateClock();
-        startCountdown();
-        scheduleEarlyExitUnlock();
+
+        boolean wakeAlarmActive = getSharedPreferences(PREFS, MODE_PRIVATE)
+                .getBoolean(WakeAlarmService.KEY_WAKE_ALARM_ACTIVE, false);
+        if (wakeAlarmActive) {
+            wakeChallengeActive = true;
+            keepScreenOn();
+            showWakeChallengeUI();
+        } else {
+            startCountdown();
+            scheduleEarlyExitUnlock();
+        }
     }
 
     private void bindViews() {
@@ -156,6 +166,24 @@ public class SleepLockActivity extends AppCompatActivity {
         try { unregisterReceiver(screenOffReceiver); } catch (IllegalArgumentException ignored) {}
         if (!exitCalled && !isFinishing() && !screenTurningOff) {
             SleepLockActivity.launch(this);
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        if (!wakeChallengeActive) {
+            boolean wakeAlarmActive = getSharedPreferences(PREFS, MODE_PRIVATE)
+                    .getBoolean(WakeAlarmService.KEY_WAKE_ALARM_ACTIVE, false);
+            if (wakeAlarmActive) {
+                if (countDownTimer != null) { countDownTimer.cancel(); countDownTimer = null; }
+                handler.removeCallbacksAndMessages(null);
+                handler.post(clockTick);
+                wakeChallengeActive = true;
+                keepScreenOn();
+                showWakeChallengeUI();
+            }
         }
     }
 
@@ -353,9 +381,14 @@ public class SleepLockActivity extends AppCompatActivity {
     // ─── Wake alarm challenge ─────────────────────────────────────────────────
 
     private void onWakeTimeReached() {
+        if (wakeChallengeActive) return;
+        wakeChallengeActive = true;
         keepScreenOn();
         WakeAlarmService.start(this);
-        // Hide countdown details, hide early exit
+        showWakeChallengeUI();
+    }
+
+    private void showWakeChallengeUI() {
         textCountdownLabel.setVisibility(View.GONE);
         dividerEarlyExit.setVisibility(View.GONE);
         textEarlyExitHint.setVisibility(View.GONE);
@@ -363,15 +396,9 @@ public class SleepLockActivity extends AppCompatActivity {
 
         String mode = challengeMode();
         switch (mode) {
-            case CHALLENGE_MATH:
-                showAlarmMathChallenge();
-                break;
-            case CHALLENGE_MEMORY:
-                showAlarmMemoryChallenge();
-                break;
-            default:
-                showAlarmSimple();
-                break;
+            case CHALLENGE_MATH:   showAlarmMathChallenge();   break;
+            case CHALLENGE_MEMORY: showAlarmMemoryChallenge(); break;
+            default:               showAlarmSimple();           break;
         }
     }
 

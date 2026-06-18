@@ -37,8 +37,8 @@
             android:showWhenLocked="true"
             android:turnScreenOn="true"
             android:theme="@style/Theme.Salemzi"
-            android:launchMode="singleTop"
-            android:excludeFromRecents="true" />
+            android:launchMode="singleTask"
+            android:taskAffinity=".alarm" />
 
         <service
             android:name=".service.SleepVpnService"
