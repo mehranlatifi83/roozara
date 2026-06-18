@@ -102,12 +102,28 @@ public class TimePickerHelper {
         picker.addOnPositiveButtonClickListener(v ->
                 listener.onTimeSet(picker.getHour(), picker.getMinute()));
 
-        // If user taps the keyboard icon inside the clock picker, intercept and
-        // switch back to our scroll mode so they never land on a letter keyboard.
-        picker.addOnNegativeButtonClickListener(v ->
-                showScrollMode(fm, ctx, title, picker.getHour(), picker.getMinute(), listener));
-
         picker.show(fm, "clock_picker");
+
+        // After the dialog view is created, intercept the internal mode-toggle button
+        // so tapping the keyboard icon goes to our scroll mode instead of typing mode.
+        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+            android.view.View root = picker.getView();
+            if (root == null) return;
+            // Resolve the resource ID by name to avoid a hard dependency on the
+            // internal layout of Material Components.
+            int btnId = root.getResources().getIdentifier(
+                    "material_timepicker_mode_button", "id",
+                    "com.google.android.material");
+            if (btnId == 0) return;
+            android.view.View modeBtn = root.findViewById(btnId);
+            if (modeBtn == null) return;
+            modeBtn.setOnClickListener(v -> {
+                int h = picker.getHour();
+                int m = picker.getMinute();
+                picker.dismiss();
+                showScrollMode(fm, ctx, title, h, m, listener);
+            });
+        }, 300);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
