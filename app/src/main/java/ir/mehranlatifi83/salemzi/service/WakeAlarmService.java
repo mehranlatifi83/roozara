@@ -90,8 +90,9 @@ public class WakeAlarmService extends Service {
     // ─── Alarm sound ─────────────────────────────────────────────────────────
 
     private void playAlarm() {
-        // Release any existing player first so a double-start does not leak a MediaPlayer.
-        stopAlarm();
+        // If already playing, skip — prevents a double-start from briefly stopping
+        // and restarting audio when both CountDownTimer and AlarmManager fire together.
+        if (player != null) return;
         Uri uri = resolveAlarmUri();
         try {
             player = new MediaPlayer();

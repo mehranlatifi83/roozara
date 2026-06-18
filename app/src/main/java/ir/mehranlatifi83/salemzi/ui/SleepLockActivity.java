@@ -433,16 +433,11 @@ public class SleepLockActivity extends AppCompatActivity {
         if (wakeChallengeActive) return;
         wakeChallengeActive = true;
         keepScreenOn();
-        if (isInForeground) {
-            // Activity is visible — set the flag directly so relaunched instances know
-            // to show the challenge, but skip starting WakeAlarmService (avoids double
-            // alarm sound and an unwanted notification while the user is already here).
-            getSharedPreferences(PREFS, MODE_PRIVATE)
-                    .edit().putBoolean(WakeAlarmService.KEY_WAKE_ALARM_ACTIVE, true).apply();
-        } else {
-            // Not visible — start the service so the alarm rings and notification appears.
-            WakeAlarmService.start(this);
-        }
+        // Always start WakeAlarmService so the alarm rings. If SleepScheduleReceiver
+        // also fires at the same time, it checks isActivityInForeground() and skips
+        // its own start, preventing a double-start. If the service is already playing
+        // (edge case where both race), WakeAlarmService.playAlarm() is idempotent.
+        WakeAlarmService.start(this);
         showWakeChallengeUI();
     }
 
