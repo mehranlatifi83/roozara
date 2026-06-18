@@ -351,7 +351,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showDndOnboardingDialog() {
-        new androidx.appcompat.app.AlertDialog.Builder(this)
+        new AlertDialog.Builder(this)
                 .setTitle(R.string.dnd_dialog_title)
                 .setMessage(R.string.dnd_onboarding_message)
                 .setPositiveButton(R.string.go_to_settings, (d, w) ->
@@ -362,7 +362,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showOverlayOnboardingDialog() {
-        new androidx.appcompat.app.AlertDialog.Builder(this)
+        new AlertDialog.Builder(this)
                 .setTitle(R.string.overlay_dialog_title)
                 .setMessage(R.string.overlay_onboarding_message)
                 .setPositiveButton(R.string.go_to_settings, (d, w) ->
@@ -376,7 +376,7 @@ public class MainActivity extends AppCompatActivity {
     private void onOverlayRowTapped() {
         boolean hasPermission = Build.VERSION.SDK_INT < Build.VERSION_CODES.M
                 || Settings.canDrawOverlays(this);
-        new androidx.appcompat.app.AlertDialog.Builder(this)
+        new AlertDialog.Builder(this)
                 .setTitle(R.string.overlay_dialog_title)
                 .setMessage(R.string.overlay_dialog_message)
                 .setPositiveButton(hasPermission ? R.string.cancel : R.string.go_to_settings,
@@ -403,7 +403,7 @@ public class MainActivity extends AppCompatActivity {
     // ─── Sound picker ─────────────────────────────────────────────────────────
 
     private void showSoundPickerDialog() {
-        new androidx.appcompat.app.AlertDialog.Builder(this)
+        new AlertDialog.Builder(this)
                 .setTitle(R.string.choose_sound_title)
                 .setItems(new CharSequence[]{
                         getString(R.string.choose_system_ringtone),
@@ -492,7 +492,7 @@ public class MainActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             if (!nm.canUseFullScreenIntent()) {
-                new androidx.appcompat.app.AlertDialog.Builder(this)
+                new AlertDialog.Builder(this)
                         .setTitle(R.string.fullscreen_permission_title)
                         .setMessage(R.string.fullscreen_permission_message)
                         .setPositiveButton(R.string.go_to_settings, (d, w) ->
