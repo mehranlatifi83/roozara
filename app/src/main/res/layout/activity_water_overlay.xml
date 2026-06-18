@@ -6,11 +6,12 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
-    android:background="#CC000000"
-    android:layoutDirection="rtl">
+    android:background="@color/colorOverlayScrim"
+    android:layoutDirection="rtl"
+    android:padding="24dp">
 
     <com.google.android.material.card.MaterialCardView
-        android:layout_width="300dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:cardBackgroundColor="@color/colorSurface"
         app:cardCornerRadius="24dp"
@@ -21,21 +22,24 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:gravity="center"
-            android:padding="28dp">
+            android:paddingStart="28dp"
+            android:paddingEnd="28dp"
+            android:paddingTop="32dp"
+            android:paddingBottom="28dp">
 
             <TextView
                 android:text="💧"
-                android:textSize="56sp"
+                android:textSize="64sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
 
             <TextView
                 android:id="@+id/text_overlay_title"
-                android:textSize="20sp"
+                android:textSize="22sp"
                 android:textColor="@color/colorOnSurface"
                 android:fontFamily="sans-serif-medium"
                 android:gravity="center"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="16dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
 
@@ -44,18 +48,19 @@
                 android:textSize="14sp"
                 android:textColor="@color/colorOnSurfaceVariant"
                 android:gravity="center"
-                android:lineSpacingMultiplier="1.5"
-                android:layout_marginTop="8dp"
+                android:lineSpacingMultiplier="1.6"
+                android:layout_marginTop="10dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_water_done"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
+                android:layout_height="52dp"
+                android:layout_marginTop="24dp"
                 android:text="@string/water_done_btn"
-                android:textSize="15sp"/>
+                android:textSize="16sp"
+                app:cornerRadius="16dp"/>
 
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>

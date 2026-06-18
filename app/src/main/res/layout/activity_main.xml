@@ -95,108 +95,143 @@
             <!-- Toggle Button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_toggle"
-                android:layout_width="220dp"
+                android:layout_width="280dp"
                 android:layout_height="52dp"
                 android:layout_marginTop="32dp"
                 android:text="@string/btn_enable_sleep"
-                android:textSize="14sp"
+                android:textSize="15sp"
                 app:cornerRadius="26dp"/>
 
-            <!-- Overlay permission row -->
-            <LinearLayout
-                android:id="@+id/row_overlay"
-                android:layout_width="wrap_content"
+            <!-- Settings card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="280dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="4dp">
+                android:layout_marginTop="20dp"
+                app:cardBackgroundColor="@color/colorSurface"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/colorDivider"
+                app:strokeWidth="1dp">
 
-                <TextView
-                    android:text="@string/overlay_label"
-                    android:textSize="12sp"
-                    android:textColor="@color/colorOnSurfaceVariant"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp">
 
-                <TextView
-                    android:id="@+id/text_overlay_status"
-                    android:textSize="12sp"
-                    android:textColor="@color/colorPrimary"
-                    android:layout_marginStart="6dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
+                    <!-- Overlay permission row -->
+                    <LinearLayout
+                        android:id="@+id/row_overlay"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground">
 
-            </LinearLayout>
+                        <TextView
+                            android:text="@string/overlay_label"
+                            android:textSize="13sp"
+                            android:textColor="@color/colorOnSurfaceVariant"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"/>
 
-            <!-- Wake alarm sound picker -->
-            <LinearLayout
-                android:id="@+id/row_sound"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="4dp">
+                        <TextView
+                            android:id="@+id/text_overlay_status"
+                            android:textSize="13sp"
+                            android:textColor="@color/colorPrimary"
+                            android:fontFamily="sans-serif-medium"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
 
-                <TextView
-                    android:text="@string/sound_picker_label"
-                    android:textSize="12sp"
-                    android:textColor="@color/colorOnSurfaceVariant"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
+                    </LinearLayout>
 
-                <TextView
-                    android:id="@+id/text_sound_name"
-                    android:textSize="12sp"
-                    android:textColor="@color/colorPrimary"
-                    android:layout_marginStart="6dp"
-                    android:maxLines="1"
-                    android:ellipsize="end"
-                    android:maxWidth="140dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginStart="16dp"
+                        android:layout_marginEnd="16dp"
+                        android:background="@color/colorDivider"/>
 
-            </LinearLayout>
+                    <!-- Wake alarm sound picker -->
+                    <LinearLayout
+                        android:id="@+id/row_sound"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground">
 
-            <!-- Lock mode selector -->
-            <LinearLayout
-                android:id="@+id/row_lock_mode"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="4dp">
+                        <TextView
+                            android:text="@string/sound_picker_label"
+                            android:textSize="13sp"
+                            android:textColor="@color/colorOnSurfaceVariant"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"/>
 
-                <TextView
-                    android:text="@string/lock_mode_label"
-                    android:textSize="12sp"
-                    android:textColor="@color/colorOnSurfaceVariant"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
+                        <TextView
+                            android:id="@+id/text_sound_name"
+                            android:textSize="13sp"
+                            android:textColor="@color/colorPrimary"
+                            android:fontFamily="sans-serif-medium"
+                            android:maxLines="1"
+                            android:ellipsize="end"
+                            android:maxWidth="110dp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
 
-                <TextView
-                    android:id="@+id/text_lock_mode"
-                    android:textSize="12sp"
-                    android:textColor="@color/colorPrimary"
-                    android:layout_marginStart="6dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
+                    </LinearLayout>
 
-            </LinearLayout>
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginStart="16dp"
+                        android:layout_marginEnd="16dp"
+                        android:background="@color/colorDivider"/>
+
+                    <!-- Lock mode selector -->
+                    <LinearLayout
+                        android:id="@+id/row_lock_mode"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground">
+
+                        <TextView
+                            android:text="@string/lock_mode_label"
+                            android:textSize="13sp"
+                            android:textColor="@color/colorOnSurfaceVariant"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"/>
+
+                        <TextView
+                            android:id="@+id/text_lock_mode"
+                            android:textSize="13sp"
+                            android:textColor="@color/colorPrimary"
+                            android:fontFamily="sans-serif-medium"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
             <!-- Schedule Card -->
             <com.google.android.material.card.MaterialCardView

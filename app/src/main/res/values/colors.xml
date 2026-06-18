@@ -8,4 +8,11 @@
     <color name="colorOnSurface">#F1F5F9</color>
     <color name="colorOnSurfaceVariant">#64748B</color>
     <color name="colorDivider">#2D3748</color>
+    <color name="colorSleepBackground">#080E1A</color>
+    <color name="colorSleepText">#94A3B8</color>
+    <color name="colorSleepSubtext">#64748B</color>
+    <color name="colorSleepClock">#F1F5F9</color>
+    <color name="colorSleepDivider">#1E293B</color>
+    <color name="colorError">#F87171</color>
+    <color name="colorOverlayScrim">#CC000000</color>
 </resources>

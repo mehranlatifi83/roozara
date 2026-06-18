@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#080E1A"
+    android:background="@color/colorSleepBackground"
     android:fillViewport="true"
     android:layoutDirection="rtl">
 
@@ -15,7 +15,8 @@
         android:gravity="center"
         android:paddingTop="72dp"
         android:paddingBottom="48dp"
-        android:paddingHorizontal="32dp">
+        android:paddingStart="32dp"
+        android:paddingEnd="32dp">
 
         <!-- Moon icon -->
         <ImageView
@@ -29,7 +30,7 @@
             android:layout_marginTop="16dp"
             android:text="وقت خوابه"
             android:textSize="18sp"
-            android:textColor="#94A3B8"
+            android:textColor="@color/colorSleepText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 
@@ -37,7 +38,7 @@
         <TextView
             android:id="@+id/text_clock"
             android:textSize="72sp"
-            android:textColor="#F1F5F9"
+            android:textColor="@color/colorSleepClock"
             android:fontFamily="sans-serif-light"
             android:letterSpacing="0.05"
             android:layout_marginTop="8dp"
@@ -48,7 +49,7 @@
         <TextView
             android:id="@+id/text_lock_date"
             android:textSize="14sp"
-            android:textColor="#64748B"
+            android:textColor="@color/colorSleepSubtext"
             android:layout_marginTop="4dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
@@ -59,7 +60,7 @@
             android:layout_height="1dp"
             android:layout_marginTop="40dp"
             android:layout_marginBottom="40dp"
-            android:background="#1E293B"/>
+            android:background="@color/colorSleepDivider"/>
 
         <!-- ══════════ MATH MODE SECTION ══════════ -->
         <LinearLayout
@@ -72,7 +73,7 @@
             <TextView
                 android:text="برای خروج از حالت خواب، جواب بده:"
                 android:textSize="13sp"
-                android:textColor="#64748B"
+                android:textColor="@color/colorSleepSubtext"
                 android:gravity="center"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
@@ -130,7 +131,7 @@
             <TextView
                 android:id="@+id/text_error"
                 android:textSize="13sp"
-                android:textColor="#F87171"
+                android:textColor="@color/colorError"
                 android:layout_marginTop="12dp"
                 android:visibility="invisible"
                 android:layout_width="wrap_content"
@@ -151,7 +152,7 @@
                 android:id="@+id/text_no_exit_hint"
                 android:text="@string/no_exit_hint"
                 android:textSize="14sp"
-                android:textColor="#64748B"
+                android:textColor="@color/colorSleepSubtext"
                 android:gravity="center"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
@@ -171,7 +172,7 @@
                 android:id="@+id/text_countdown_label"
                 android:text="@string/time_until_wake"
                 android:textSize="13sp"
-                android:textColor="#64748B"
+                android:textColor="@color/colorSleepSubtext"
                 android:layout_marginTop="6dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
