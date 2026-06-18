@@ -1,4 +1,4 @@
-package ir.mehranlatifi83.helth;
+package ir.mehranlatifi83.helth.service;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -18,30 +18,30 @@ import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 
+import ir.mehranlatifi83.helth.R;
+import ir.mehranlatifi83.helth.ui.MainActivity;
+
 public class WakeAlarmService extends Service {
 
     private static final String TAG        = "WakeAlarmService";
     private static final String CHANNEL_ID = "wake_alarm_channel";
     private static final int    NOTIF_ID   = 4;
 
-    static final String ACTION_DISMISS = "ir.mehranlatifi83.helth.ACTION_DISMISS_WAKE";
-    static final String PREF_SOUND_URI = "alarm_sound_uri";
+    public static final String ACTION_DISMISS = "ir.mehranlatifi83.helth.ACTION_DISMISS_WAKE";
+    public static final String PREF_SOUND_URI = "alarm_sound_uri";
 
     private MediaPlayer player;
-    private boolean cleanupDone = false;
+    private boolean     cleanupDone = false;
 
     // ─── Service lifecycle ───────────────────────────────────────────────────
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        // Always call startForeground immediately to satisfy Android 8+ requirements.
-        // If this is a dismiss request we stop right after.
         ensureChannel();
         startForeground(NOTIF_ID, buildNotification());
 
         if (ACTION_DISMISS.equals(intent != null ? intent.getAction() : null)) {
-            // Stop alarm immediately inside onStartCommand — don't wait for onDestroy.
-            // This is the only reliable way to cut the sound synchronously.
+            // Stop alarm immediately — don't wait for onDestroy.
             stopAlarm();
             cleanupDone = true;
             doFullSleepCleanup();
@@ -51,15 +51,13 @@ public class WakeAlarmService extends Service {
         }
 
         playAlarm();
-        // START_STICKY so the system restarts the service if it's killed while the
-        // alarm is still ringing (e.g., due to memory pressure).
         return START_STICKY;
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        // Safety net: only clean up if onStartCommand's dismiss path didn't already do it.
+        // Safety net: only clean up if the dismiss path didn't already do it.
         stopAlarm();
         if (!cleanupDone) doFullSleepCleanup();
         getSystemService(NotificationManager.class).cancel(NOTIF_ID);
@@ -70,23 +68,15 @@ public class WakeAlarmService extends Service {
 
     // ─── Static helpers ───────────────────────────────────────────────────────
 
-    /** Starts the alarm service. Safe to call from Activity or BroadcastReceiver. */
     public static void start(Context ctx) {
         ctx.startForegroundService(new Intent(ctx, WakeAlarmService.class));
     }
 
-    /**
-     * Stops the alarm service. Sends ACTION_DISMISS so the player is stopped
-     * synchronously inside onStartCommand rather than waiting for onDestroy.
-     */
     public static void stop(Context ctx) {
-        // If service is running, this delivers the intent to onStartCommand which
-        // stops the player immediately. If it's not running it starts and instantly stops.
         try {
             ctx.startForegroundService(
                     new Intent(ctx, WakeAlarmService.class).setAction(ACTION_DISMISS));
         } catch (Exception e) {
-            // Fallback: just send a regular stopService
             ctx.stopService(new Intent(ctx, WakeAlarmService.class));
         }
     }
@@ -94,8 +84,7 @@ public class WakeAlarmService extends Service {
     // ─── Alarm sound ─────────────────────────────────────────────────────────
 
     private void playAlarm() {
-        // Release any existing player first so a double-start (e.g., timed-mode countdown
-        // and ACTION_WAKE alarm both firing at the same moment) does not leak a MediaPlayer.
+        // Release any existing player first so a double-start does not leak a MediaPlayer.
         stopAlarm();
         Uri uri = resolveAlarmUri();
         try {
@@ -120,11 +109,9 @@ public class WakeAlarmService extends Service {
     private void stopAlarm() {
         if (player != null) {
             try {
-                // Null listeners first to prevent callbacks firing after release
                 player.setOnPreparedListener(null);
                 player.setOnErrorListener(null);
                 // reset() is safe in every MediaPlayer state (including Preparing)
-                // and stops audio immediately
                 player.reset();
                 player.release();
             } catch (Exception ignored) {}
@@ -142,10 +129,7 @@ public class WakeAlarmService extends Service {
 
     // ─── Sleep state cleanup ─────────────────────────────────────────────────
 
-    /**
-     * Fully tears down sleep mode regardless of how the alarm is dismissed.
-     * Idempotent — safe to call even if sleep mode is already inactive.
-     */
+    /** Fully tears down sleep mode. Idempotent — safe to call even if already inactive. */
     private void doFullSleepCleanup() {
         stopService(new Intent(this, SleepVpnService.class));
         SleepVpnService.disconnect();
@@ -156,15 +140,13 @@ public class WakeAlarmService extends Service {
         getSharedPreferences("helth_prefs", MODE_PRIVATE)
                 .edit().putBoolean("sleep_active", false).apply();
 
-        // Cancel the persistent sleep notification posted by SleepScheduleReceiver
         getSystemService(NotificationManager.class).cancel(2);
     }
 
     // ─── Notification ─────────────────────────────────────────────────────────
 
     private Notification buildNotification() {
-        Intent dismissIntent = new Intent(this, WakeAlarmService.class)
-                .setAction(ACTION_DISMISS);
+        Intent dismissIntent = new Intent(this, WakeAlarmService.class).setAction(ACTION_DISMISS);
         // Use getForegroundService on API 26+ to avoid IllegalStateException when the
         // notification action is tapped while the app is in the background.
         PendingIntent dismissPi = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
@@ -173,8 +155,6 @@ public class WakeAlarmService extends Service {
                 : PendingIntent.getService(this, 0, dismissIntent,
                         PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-        // fullScreenIntent ensures the notification appears prominently on lock screen
-        // and fires even after the heads-up popup has slid away
         PendingIntent fullScreenPi = PendingIntent.getActivity(
                 this, 11,
                 new Intent(this, MainActivity.class)
@@ -199,8 +179,7 @@ public class WakeAlarmService extends Service {
         NotificationChannel ch = new NotificationChannel(
                 CHANNEL_ID,
                 getString(R.string.wake_alarm_channel_name),
-                NotificationManager.IMPORTANCE_HIGH
-        );
+                NotificationManager.IMPORTANCE_HIGH);
         // Sound is handled by MediaPlayer; silence the channel to avoid double audio
         ch.setSound(null, null);
         getSystemService(NotificationManager.class).createNotificationChannel(ch);

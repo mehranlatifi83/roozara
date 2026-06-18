@@ -1,10 +1,14 @@
-package ir.mehranlatifi83.helth;
+package ir.mehranlatifi83.helth.receiver;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
+import ir.mehranlatifi83.helth.manager.ScheduleManager;
+import ir.mehranlatifi83.helth.manager.WaterReminderManager;
+
 public class BootReceiver extends BroadcastReceiver {
+
     @Override
     public void onReceive(Context ctx, Intent intent) {
         if (!Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) return;

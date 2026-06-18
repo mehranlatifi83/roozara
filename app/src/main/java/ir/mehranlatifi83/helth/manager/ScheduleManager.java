@@ -1,4 +1,4 @@
-package ir.mehranlatifi83.helth;
+package ir.mehranlatifi83.helth.manager;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -7,20 +7,22 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 
+import ir.mehranlatifi83.helth.receiver.SleepScheduleReceiver;
+
 import java.util.Calendar;
 
 public class ScheduleManager {
 
-    static final String KEY_SLEEP_HOUR = "sleep_hour";
-    static final String KEY_SLEEP_MIN  = "sleep_min";
-    static final String KEY_WAKE_HOUR  = "wake_hour";
-    static final String KEY_WAKE_MIN   = "wake_min";
+    static final String KEY_SLEEP_HOUR      = "sleep_hour";
+    static final String KEY_SLEEP_MIN       = "sleep_min";
+    static final String KEY_WAKE_HOUR       = "wake_hour";
+    static final String KEY_WAKE_MIN        = "wake_min";
     static final String KEY_SCHEDULE_ENABLED = "schedule_enabled";
-    private static final String PREFS  = "helth_prefs";
 
-    private static final int REQ_SLEEP     = 100;
-    private static final int REQ_WAKE      = 101;
-    private static final int REQ_REMINDER  = 102;
+    private static final String PREFS       = "helth_prefs";
+    private static final int    REQ_SLEEP   = 100;
+    private static final int    REQ_WAKE    = 101;
+    private static final int    REQ_REMINDER = 102;
 
     public static void saveSleepTime(Context ctx, int hour, int min) {
         prefs(ctx).edit().putInt(KEY_SLEEP_HOUR, hour).putInt(KEY_SLEEP_MIN, min).apply();

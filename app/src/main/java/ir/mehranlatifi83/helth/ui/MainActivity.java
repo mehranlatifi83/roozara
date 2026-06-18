@@ -1,4 +1,4 @@
-package ir.mehranlatifi83.helth;
+package ir.mehranlatifi83.helth.ui;
 
 import android.Manifest;
 import android.app.NotificationManager;
@@ -27,15 +27,24 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.materialswitch.MaterialSwitch;
+
+import ir.mehranlatifi83.helth.R;
+import ir.mehranlatifi83.helth.manager.ScheduleManager;
+import ir.mehranlatifi83.helth.receiver.SleepScheduleReceiver;
+import ir.mehranlatifi83.helth.service.SleepVpnService;
+import ir.mehranlatifi83.helth.service.WakeAlarmService;
+import ir.mehranlatifi83.helth.util.JalaliCalendar;
+import ir.mehranlatifi83.helth.util.TimePickerHelper;
+
 import java.util.Calendar;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String PREFS                   = "helth_prefs";
-    private static final String KEY_SLEEP_ACTIVE        = "sleep_active";
-    private static final String KEY_OB_DND_SHOWN        = "onboarding_dnd_shown";
-    private static final String KEY_OB_OVERLAY_SHOWN    = "onboarding_overlay_shown";
+    private static final String PREFS                = "helth_prefs";
+    private static final String KEY_SLEEP_ACTIVE     = "sleep_active";
+    private static final String KEY_OB_DND_SHOWN     = "onboarding_dnd_shown";
+    private static final String KEY_OB_OVERLAY_SHOWN = "onboarding_overlay_shown";
 
     private MaterialButton   btnToggle;
     private TextView         textStatus;
@@ -49,16 +58,14 @@ public class MainActivity extends AppCompatActivity {
     private TextView         textOverlayStatus;
     private TextView         textSoundName;
 
-    private boolean isSleepActive       = false;
+    private boolean isSleepActive        = false;
     private boolean pendingScheduleEnable = false;
 
-    /** Handles the system VPN-permission dialog result. */
     private final ActivityResultLauncher<Intent> vpnLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == RESULT_OK) {
                     if (pendingScheduleEnable) {
-                        // VPN authorized as part of enabling the automatic schedule
                         pendingScheduleEnable = false;
                         ScheduleManager.setScheduleEnabled(this, true);
                         updateScheduleUI();
@@ -68,41 +75,30 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     pendingScheduleEnable = false;
                 }
-            }
-    );
+            });
 
-    /** Handles the system ringtone picker result. */
     private final ActivityResultLauncher<Intent> ringtoneLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                     Uri uri = result.getData().getParcelableExtra(
                             android.media.RingtoneManager.EXTRA_RINGTONE_PICKED_URI);
-                    if (uri != null) {
-                        saveAlarmSoundUri(uri.toString());
-                    } else {
-                        // User selected "Default" in the picker
-                        saveAlarmSoundUri(null);
-                    }
+                    saveAlarmSoundUri(uri != null ? uri.toString() : null);
                 }
-            }
-    );
+            });
 
-    /** Handles the audio file picker (SAF) result. */
     private final ActivityResultLauncher<Intent> fileLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                     Uri uri = result.getData().getData();
                     if (uri != null) {
-                        // Persist permission so we can read the file after the session ends
                         getContentResolver().takePersistableUriPermission(
                                 uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
                         saveAlarmSoundUri(uri.toString());
                     }
                 }
-            }
-    );
+            });
 
     // ─── Lifecycle ───────────────────────────────────────────────────────────
 
@@ -110,7 +106,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         bindViews();
         setupBottomNav();
         setupScheduleCard();
@@ -120,26 +115,25 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Sync sleep state in case it was changed by the lock screen or the schedule alarm
         isSleepActive = getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                 .getBoolean(KEY_SLEEP_ACTIVE, false);
         updateSleepUI();
         updateScheduleUI();
         updateOverlayUI();
-        checkOnboarding(); // Show sequential first-time permission dialogs
+        checkOnboarding();
     }
 
     // ─── View wiring ─────────────────────────────────────────────────────────
 
     private void bindViews() {
-        btnToggle        = findViewById(R.id.btn_toggle);
-        textStatus       = findViewById(R.id.text_status);
-        cardCircle       = findViewById(R.id.card_circle);
-        iconSleep        = findViewById(R.id.icon_sleep);
-        textSleepTime    = findViewById(R.id.text_sleep_time);
-        textWakeTime     = findViewById(R.id.text_wake_time);
-        textScheduleHint = findViewById(R.id.text_schedule_hint);
-        switchSchedule   = findViewById(R.id.switch_schedule);
+        btnToggle         = findViewById(R.id.btn_toggle);
+        textStatus        = findViewById(R.id.text_status);
+        cardCircle        = findViewById(R.id.card_circle);
+        iconSleep         = findViewById(R.id.icon_sleep);
+        textSleepTime     = findViewById(R.id.text_sleep_time);
+        textWakeTime      = findViewById(R.id.text_wake_time);
+        textScheduleHint  = findViewById(R.id.text_schedule_hint);
+        switchSchedule    = findViewById(R.id.switch_schedule);
         textLockMode      = findViewById(R.id.text_lock_mode);
         textOverlayStatus = findViewById(R.id.text_overlay_status);
         textSoundName     = findViewById(R.id.text_sound_name);
@@ -171,14 +165,12 @@ public class MainActivity extends AppCompatActivity {
                 finish();
                 return true;
             }
-            return true; // nav_sleep: stay
+            return true;
         });
     }
 
     private void setupScheduleCard() {
-        // Tapping the card opens the time pickers
         findViewById(R.id.card_schedule).setOnClickListener(v -> showSleepTimePicker());
-
         switchSchedule.setOnCheckedChangeListener((btn, checked) -> onScheduleSwitchChanged(checked));
     }
 
@@ -196,8 +188,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void startSleepMode() {
         NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-                && !nm.isNotificationPolicyAccessGranted()) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !nm.isNotificationPolicyAccessGranted()) {
             showDndPermissionDialog();
             return;
         }
@@ -210,8 +201,6 @@ public class MainActivity extends AppCompatActivity {
         persistSleepState();
         updateSleepUI();
 
-        // Post a full-screen-intent notification — the only reliable way to show
-        // an activity over any foreground app on Android 10+.
         SleepScheduleReceiver.showSleepNotification(this);
     }
 
@@ -237,8 +226,8 @@ public class MainActivity extends AppCompatActivity {
         int[] saved = ScheduleManager.getSleepTime(this);
         int h = saved != null ? saved[0] : 23;
         int m = saved != null ? saved[1] : 0;
-        TimePickerHelper.show(getSupportFragmentManager(), this, getString(R.string.picker_sleep_title), h, m,
-                (hour, min) -> {
+        TimePickerHelper.show(getSupportFragmentManager(), this,
+                getString(R.string.picker_sleep_title), h, m, (hour, min) -> {
                     ScheduleManager.saveSleepTime(this, hour, min);
                     showWakeTimePicker();
                 });
@@ -248,8 +237,8 @@ public class MainActivity extends AppCompatActivity {
         int[] saved = ScheduleManager.getWakeTime(this);
         int h = saved != null ? saved[0] : 7;
         int m = saved != null ? saved[1] : 0;
-        TimePickerHelper.show(getSupportFragmentManager(), this, getString(R.string.picker_wake_title), h, m,
-                (hour, min) -> {
+        TimePickerHelper.show(getSupportFragmentManager(), this,
+                getString(R.string.picker_wake_title), h, m, (hour, min) -> {
                     ScheduleManager.saveWakeTime(this, hour, min);
                     if (ScheduleManager.isScheduleEnabled(this)) {
                         ScheduleManager.scheduleSleepAlarm(this);
@@ -277,7 +266,7 @@ public class MainActivity extends AppCompatActivity {
             if (vpnIntent != null) {
                 pendingScheduleEnable = true;
                 vpnLauncher.launch(vpnIntent);
-                return; // schedule will be enabled inside vpnLauncher result callback
+                return;
             }
         }
         ScheduleManager.setScheduleEnabled(this, checked);
@@ -307,23 +296,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateScheduleUI() {
-        int[] sleep   = ScheduleManager.getSleepTime(this);
-        int[] wake    = ScheduleManager.getWakeTime(this);
-        boolean on    = ScheduleManager.isScheduleEnabled(this);
+        int[] sleep = ScheduleManager.getSleepTime(this);
+        int[] wake  = ScheduleManager.getWakeTime(this);
+        boolean on  = ScheduleManager.isScheduleEnabled(this);
 
         textSleepTime.setText(sleep != null ? fmt(sleep[0], sleep[1]) : getString(R.string.schedule_not_set));
         textWakeTime.setText(wake   != null ? fmt(wake[0],  wake[1])  : getString(R.string.schedule_not_set));
 
-        // Detach listener to avoid re-entrancy while programmatically updating
         switchSchedule.setOnCheckedChangeListener(null);
         switchSchedule.setChecked(on);
         switchSchedule.setOnCheckedChangeListener((btn, checked) -> onScheduleSwitchChanged(checked));
 
-        if (!ScheduleManager.hasSchedule(this)) {
-            textScheduleHint.setText(R.string.tap_to_set);
-        } else {
-            textScheduleHint.setText(on ? R.string.schedule_active : R.string.schedule_inactive);
-        }
+        textScheduleHint.setText(!ScheduleManager.hasSchedule(this)
+                ? R.string.tap_to_set
+                : on ? R.string.schedule_active : R.string.schedule_inactive);
     }
 
     private String fmt(int h, int m) {
@@ -341,22 +327,18 @@ public class MainActivity extends AppCompatActivity {
         updateLockModeUI();
     }
 
-    // ─── First-time onboarding ───────────────────────────────────────────────
+    // ─── Onboarding ──────────────────────────────────────────────────────────
 
-    /** Shows DND then overlay permission dialogs sequentially, each only once. */
     private void checkOnboarding() {
         SharedPreferences prefs = getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         NotificationManager nm  = getSystemService(NotificationManager.class);
 
-        // Step 1: DND — show if not granted and not yet prompted
-        if (!nm.isNotificationPolicyAccessGranted()
-                && !prefs.getBoolean(KEY_OB_DND_SHOWN, false)) {
+        if (!nm.isNotificationPolicyAccessGranted() && !prefs.getBoolean(KEY_OB_DND_SHOWN, false)) {
             prefs.edit().putBoolean(KEY_OB_DND_SHOWN, true).apply();
             showDndOnboardingDialog();
             return;
         }
 
-        // Step 2: Overlay — show only after DND step is handled
         boolean dndHandled = nm.isNotificationPolicyAccessGranted()
                 || prefs.getBoolean(KEY_OB_DND_SHOWN, false);
         if (dndHandled
@@ -374,8 +356,7 @@ public class MainActivity extends AppCompatActivity {
                 .setMessage(R.string.dnd_onboarding_message)
                 .setPositiveButton(R.string.go_to_settings, (d, w) ->
                         startActivity(new Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)))
-                .setNegativeButton(R.string.later, (d, w) ->
-                        checkOnboarding()) // Advance to overlay step immediately
+                .setNegativeButton(R.string.later, (d, w) -> checkOnboarding())
                 .setCancelable(false)
                 .show();
     }
@@ -395,25 +376,15 @@ public class MainActivity extends AppCompatActivity {
     private void onOverlayRowTapped() {
         boolean hasPermission = Build.VERSION.SDK_INT < Build.VERSION_CODES.M
                 || Settings.canDrawOverlays(this);
-        if (hasPermission) {
-            // Already granted — inform the user it's active
-            new androidx.appcompat.app.AlertDialog.Builder(this)
-                    .setTitle(R.string.overlay_dialog_title)
-                    .setMessage(R.string.overlay_dialog_message)
-                    .setPositiveButton(R.string.cancel, null)
-                    .show();
-        } else {
-            new androidx.appcompat.app.AlertDialog.Builder(this)
-                    .setTitle(R.string.overlay_dialog_title)
-                    .setMessage(R.string.overlay_dialog_message)
-                    .setPositiveButton(R.string.go_to_settings, (d, w) -> {
-                        Intent i = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                                Uri.parse("package:" + getPackageName()));
-                        startActivity(i);
-                    })
-                    .setNegativeButton(R.string.cancel, null)
-                    .show();
-        }
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle(R.string.overlay_dialog_title)
+                .setMessage(R.string.overlay_dialog_message)
+                .setPositiveButton(hasPermission ? R.string.cancel : R.string.go_to_settings,
+                        hasPermission ? null : (d, w) -> startActivity(
+                                new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                                        Uri.parse("package:" + getPackageName()))))
+                .setNegativeButton(hasPermission ? null : R.string.cancel, null)
+                .show();
     }
 
     private void updateOverlayUI() {
@@ -426,9 +397,7 @@ public class MainActivity extends AppCompatActivity {
         boolean isTimed = SleepLockActivity.MODE_TIMED.equals(
                 getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                         .getString("lock_exit_mode", SleepLockActivity.MODE_MATH));
-        textLockMode.setText(isTimed
-                ? R.string.lock_mode_timed
-                : R.string.lock_mode_math);
+        textLockMode.setText(isTimed ? R.string.lock_mode_timed : R.string.lock_mode_math);
     }
 
     // ─── Sound picker ─────────────────────────────────────────────────────────
@@ -479,13 +448,12 @@ public class MainActivity extends AppCompatActivity {
                 .getString(WakeAlarmService.PREF_SOUND_URI, null);
         if (saved == null) {
             textSoundName.setText(R.string.sound_default);
-        } else {
-            Uri uri = Uri.parse(saved);
-            // Try to show the ringtone title; fall back to "فایل سفارشی"
-            android.media.Ringtone r = android.media.RingtoneManager.getRingtone(this, uri);
-            String title = r != null ? r.getTitle(this) : null;
-            textSoundName.setText(title != null ? title : getString(R.string.sound_custom_file));
+            return;
         }
+        Uri uri = Uri.parse(saved);
+        android.media.Ringtone r = android.media.RingtoneManager.getRingtone(this, uri);
+        String title = r != null ? r.getTitle(this) : null;
+        textSoundName.setText(title != null ? title : getString(R.string.sound_custom_file));
     }
 
     // ─── Permission dialogs ──────────────────────────────────────────────────
@@ -521,18 +489,15 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(
                     this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1);
         }
-        // Android 14+ requires explicit user approval for USE_FULL_SCREEN_INTENT
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             if (!nm.canUseFullScreenIntent()) {
                 new androidx.appcompat.app.AlertDialog.Builder(this)
                         .setTitle(R.string.fullscreen_permission_title)
                         .setMessage(R.string.fullscreen_permission_message)
-                        .setPositiveButton(R.string.go_to_settings, (d, w) -> {
-                            Intent i = new Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT,
-                                    Uri.parse("package:" + getPackageName()));
-                            startActivity(i);
-                        })
+                        .setPositiveButton(R.string.go_to_settings, (d, w) ->
+                                startActivity(new Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT,
+                                        Uri.parse("package:" + getPackageName()))))
                         .setNegativeButton(R.string.cancel, null)
                         .show();
             }

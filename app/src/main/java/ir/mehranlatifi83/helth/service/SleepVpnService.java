@@ -1,4 +1,4 @@
-package ir.mehranlatifi83.helth;
+package ir.mehranlatifi83.helth.service;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -11,11 +11,14 @@ import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 
+import ir.mehranlatifi83.helth.R;
+import ir.mehranlatifi83.helth.ui.MainActivity;
+
 import java.io.IOException;
 
 public class SleepVpnService extends VpnService {
 
-    private static final String TAG       = "SleepVpnService";
+    private static final String TAG        = "SleepVpnService";
     private static final String CHANNEL_ID = "sleep_vpn_channel";
     private static final int    NOTIF_ID   = 1;
 
@@ -67,8 +70,7 @@ public class SleepVpnService extends VpnService {
         NotificationChannel channel = new NotificationChannel(
                 CHANNEL_ID,
                 getString(R.string.channel_name),
-                NotificationManager.IMPORTANCE_LOW
-        );
+                NotificationManager.IMPORTANCE_LOW);
         channel.setShowBadge(false);
         getSystemService(NotificationManager.class).createNotificationChannel(channel);
     }
@@ -77,8 +79,7 @@ public class SleepVpnService extends VpnService {
         PendingIntent openApp = PendingIntent.getActivity(
                 this, 0,
                 new Intent(this, MainActivity.class),
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-        );
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         return new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle(getString(R.string.notif_title))
                 .setContentText(getString(R.string.notif_text))

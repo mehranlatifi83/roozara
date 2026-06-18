@@ -1,4 +1,4 @@
-package ir.mehranlatifi83.helth;
+package ir.mehranlatifi83.helth.receiver;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -11,16 +11,20 @@ import android.provider.Settings;
 
 import androidx.core.app.NotificationCompat;
 
+import ir.mehranlatifi83.helth.R;
+import ir.mehranlatifi83.helth.manager.WaterReminderManager;
+import ir.mehranlatifi83.helth.ui.WaterActivity;
+import ir.mehranlatifi83.helth.ui.WaterOverlayActivity;
+
 public class WaterReminderReceiver extends BroadcastReceiver {
 
-    static final String ACTION_WATER = "ir.mehranlatifi83.helth.ACTION_WATER";
-    static final String EXTRA_SLOT   = "slot";
-    static final String EXTRA_HOUR   = "hour";
-    static final String EXTRA_MIN    = "min";
+    public  static final String ACTION_WATER = "ir.mehranlatifi83.helth.ACTION_WATER";
+    public  static final String EXTRA_SLOT   = "slot";
+    public  static final String EXTRA_HOUR   = "hour";
+    public  static final String EXTRA_MIN    = "min";
 
     private static final String CHANNEL_ID = "water_reminder_channel";
 
-    // 8 varied reminder messages (index matches slot 0–7)
     private static final int[] TITLES = {
         R.string.water_reminder_title_0, R.string.water_reminder_title_1,
         R.string.water_reminder_title_2, R.string.water_reminder_title_3,
@@ -48,7 +52,6 @@ public class WaterReminderReceiver extends BroadcastReceiver {
                 || Settings.canDrawOverlays(ctx);
 
         if (canOverlay) {
-            // Launch a floating overlay screen over whatever is currently visible
             ctx.startActivity(new Intent(ctx, WaterOverlayActivity.class)
                     .putExtra(EXTRA_SLOT, slot)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
@@ -58,7 +61,7 @@ public class WaterReminderReceiver extends BroadcastReceiver {
             showNotification(ctx, slot);
         }
 
-        // Reschedule for tomorrow regardless of how the reminder was shown
+        // Reschedule for tomorrow
         long tomorrow = WaterReminderManager.nextTriggerMs(h, m);
         android.app.AlarmManager am =
                 (android.app.AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
@@ -79,9 +82,7 @@ public class WaterReminderReceiver extends BroadcastReceiver {
     static void showNotification(Context ctx, int slot) {
         ensureChannel(ctx);
 
-        int safeSlot  = (slot >= 0 && slot < WaterReminderManager.COUNT) ? slot : 0;
-        int titleRes  = TITLES[safeSlot];
-        int textRes   = TEXTS[safeSlot];
+        int safeSlot = (slot >= 0 && slot < WaterReminderManager.COUNT) ? slot : 0;
 
         PendingIntent openApp = PendingIntent.getActivity(ctx, 300 + slot,
                 new Intent(ctx, WaterActivity.class)
@@ -90,10 +91,10 @@ public class WaterReminderReceiver extends BroadcastReceiver {
 
         ctx.getSystemService(NotificationManager.class).notify(100 + slot,
                 new NotificationCompat.Builder(ctx, CHANNEL_ID)
-                        .setContentTitle(ctx.getString(titleRes))
-                        .setContentText(ctx.getString(textRes))
+                        .setContentTitle(ctx.getString(TITLES[safeSlot]))
+                        .setContentText(ctx.getString(TEXTS[safeSlot]))
                         .setStyle(new NotificationCompat.BigTextStyle()
-                                .bigText(ctx.getString(textRes)))
+                                .bigText(ctx.getString(TEXTS[safeSlot])))
                         .setSmallIcon(R.drawable.ic_water)
                         .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                         .setContentIntent(openApp)

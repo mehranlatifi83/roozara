@@ -23,7 +23,7 @@
         tools:targetApi="31">
 
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -32,7 +32,7 @@
         </activity>
 
         <activity
-            android:name=".SleepLockActivity"
+            android:name=".ui.SleepLockActivity"
             android:exported="false"
             android:showWhenLocked="true"
             android:turnScreenOn="true"
@@ -41,7 +41,7 @@
             android:excludeFromRecents="true" />
 
         <service
-            android:name=".SleepVpnService"
+            android:name=".service.SleepVpnService"
             android:foregroundServiceType="specialUse"
             android:permission="android.permission.BIND_VPN_SERVICE"
             android:exported="true">
@@ -51,7 +51,7 @@
         </service>
 
         <receiver
-            android:name=".SleepScheduleReceiver"
+            android:name=".receiver.SleepScheduleReceiver"
             android:exported="false">
             <intent-filter>
                 <action android:name="ir.mehranlatifi83.helth.ACTION_SLEEP" />
@@ -61,16 +61,16 @@
         </receiver>
 
         <service
-            android:name=".WakeAlarmService"
+            android:name=".service.WakeAlarmService"
             android:foregroundServiceType="specialUse"
             android:exported="false" />
 
         <activity
-            android:name=".WaterActivity"
+            android:name=".ui.WaterActivity"
             android:exported="false" />
 
         <activity
-            android:name=".WaterOverlayActivity"
+            android:name=".ui.WaterOverlayActivity"
             android:exported="false"
             android:showWhenLocked="true"
             android:turnScreenOn="true"
@@ -79,7 +79,7 @@
             android:excludeFromRecents="true" />
 
         <receiver
-            android:name=".WaterReminderReceiver"
+            android:name=".receiver.WaterReminderReceiver"
             android:exported="false">
             <intent-filter>
                 <action android:name="ir.mehranlatifi83.helth.ACTION_WATER" />
@@ -87,7 +87,7 @@
         </receiver>
 
         <receiver
-            android:name=".BootReceiver"
+            android:name=".receiver.BootReceiver"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />

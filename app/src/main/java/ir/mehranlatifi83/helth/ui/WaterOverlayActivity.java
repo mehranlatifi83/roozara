@@ -1,4 +1,4 @@
-package ir.mehranlatifi83.helth;
+package ir.mehranlatifi83.helth.ui;
 
 import android.os.Build;
 import android.os.Bundle;
@@ -9,13 +9,15 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.button.MaterialButton;
 
+import ir.mehranlatifi83.helth.R;
+import ir.mehranlatifi83.helth.receiver.WaterReminderReceiver;
+
 public class WaterOverlayActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Show over the lock screen and turn the screen on if needed
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true);
             setTurnScreenOn(true);
@@ -52,5 +54,4 @@ public class WaterOverlayActivity extends AppCompatActivity {
         ((TextView) findViewById(R.id.text_overlay_title)).setText(titleRes[safe]);
         ((TextView) findViewById(R.id.text_overlay_body)).setText(textRes[safe]);
     }
-
 }

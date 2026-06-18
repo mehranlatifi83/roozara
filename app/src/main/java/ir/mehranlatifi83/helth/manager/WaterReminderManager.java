@@ -1,4 +1,4 @@
-package ir.mehranlatifi83.helth;
+package ir.mehranlatifi83.helth.manager;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
+
+import ir.mehranlatifi83.helth.receiver.WaterReminderReceiver;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,13 +32,13 @@ public class WaterReminderManager {
     static final String KEY_DINNER_M    = "dinner_min";
     static final String KEY_WATER_ON    = "water_reminders_enabled";
 
-    private static final String PREFS    = "helth_prefs";
-    private static final int    REQ_BASE = 200;
-    static final int            COUNT    = 8;
+    private static final String PREFS          = "helth_prefs";
+    private static final int    REQ_BASE       = 200;
+    public  static final int    COUNT          = 8;
 
-    private static final int BLOCK_BEFORE_MIN = 30;  // minutes before meal to block
-    private static final int BLOCK_AFTER_MIN  = 90;  // minutes after meal to block
-    private static final int MIN_GAP_MIN      = 45;  // minimum gap between reminders
+    private static final int BLOCK_BEFORE_MIN = 30;
+    private static final int BLOCK_AFTER_MIN  = 90;
+    private static final int MIN_GAP_MIN      = 45;
 
     // ─── Meal time storage ───────────────────────────────────────────────────
 
@@ -88,7 +90,6 @@ public class WaterReminderManager {
         int endMin   = (sleep != null) ? sleep[0] * 60 + sleep[1] : 23 * 60;
         if (endMin <= startMin) endMin += 24 * 60;
 
-        // Build and merge blocked intervals
         List<int[]> blocked = new ArrayList<>();
         int[][] meals = {getBreakfast(ctx), getLunch(ctx), getDinner(ctx)};
         for (int[] meal : meals) {
@@ -99,43 +100,35 @@ public class WaterReminderManager {
         blocked.sort((a, b) -> a[0] - b[0]);
         List<int[]> merged = mergeIntervals(blocked);
 
-        // Subtract blocked from awake window → valid open segments
         List<int[]> valid = new ArrayList<>();
         int cursor = startMin;
         for (int[] b : merged) {
-            int bs = b[0];
-            int be = b[1];
-            if (bs > cursor) valid.add(new int[]{cursor, Math.min(bs, endMin)});
-            cursor = Math.max(cursor, be);
+            if (b[0] > cursor) valid.add(new int[]{cursor, Math.min(b[0], endMin)});
+            cursor = Math.max(cursor, b[1]);
             if (cursor >= endMin) break;
         }
         if (cursor < endMin) valid.add(new int[]{cursor, endMin});
 
-        // Total valid minutes available
         int totalValid = 0;
         for (int[] v : valid) totalValid += Math.max(0, v[1] - v[0]);
 
-        // Place COUNT reminders evenly, honoring MIN_GAP_MIN
         List<int[]> result = new ArrayList<>();
         if (totalValid <= 0) return result;
 
         int interval = totalValid / (COUNT + 1);
-        // If spacing would be tighter than min gap, widen as much as possible
         if (interval < MIN_GAP_MIN) interval = MIN_GAP_MIN;
 
         // Use -1000 (not MIN_VALUE) to avoid integer overflow in the gap check below
         int lastClock = -1000;
         for (int i = 1; i <= COUNT; i++) {
             int targetOffset = interval * i;
-
-            // Map the target offset to a clock minute; -1 when past end of valid time
             int clock = (targetOffset <= totalValid) ? offsetToClockMin(valid, targetOffset) : -1;
 
-            // Enforce minimum gap: if the evenly-spaced slot is too close (or past valid
-            // time entirely), try placing the reminder at lastClock + MIN_GAP_MIN instead.
+            // If the evenly-spaced slot is too close (or past valid time), try placing
+            // the reminder at lastClock + MIN_GAP_MIN instead.
             if (clock < 0 || clock - lastClock < MIN_GAP_MIN) {
                 clock = lastClock + MIN_GAP_MIN;
-                if (!isInValidSegment(valid, clock)) break; // no room left
+                if (!isInValidSegment(valid, clock)) break;
             }
 
             result.add(new int[]{(clock % (24 * 60)) / 60, (clock % (24 * 60)) % 60});
@@ -148,7 +141,7 @@ public class WaterReminderManager {
     // ─── Alarm scheduling ─────────────────────────────────────────────────────
 
     public static void scheduleAll(Context ctx) {
-        if (!canScheduleExact(ctx)) return; // permission not granted on Android 12+
+        if (!canScheduleExact(ctx)) return;
         cancelAll(ctx);
         List<int[]> slots = computeReminderTimes(ctx);
         AlarmManager am = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
@@ -159,7 +152,6 @@ public class WaterReminderManager {
                         nextTriggerMs(slot[0], slot[1]),
                         buildIntent(ctx, i, slot[0], slot[1]));
             } catch (SecurityException ignored) {
-                // Exact alarm permission revoked mid-session; skip remaining slots
                 break;
             }
         }
@@ -182,7 +174,6 @@ public class WaterReminderManager {
 
     // ─── Interval helpers ─────────────────────────────────────────────────────
 
-    /** Merge overlapping or adjacent intervals (input must be sorted by start). */
     private static List<int[]> mergeIntervals(List<int[]> sorted) {
         List<int[]> out = new ArrayList<>();
         for (int[] cur : sorted) {
@@ -195,10 +186,6 @@ public class WaterReminderManager {
         return out;
     }
 
-    /**
-     * Converts an offset (minutes into the valid-time-space) to actual clock minutes.
-     * Returns -1 if offset exceeds total valid time.
-     */
     private static int offsetToClockMin(List<int[]> valid, int offset) {
         int acc = 0;
         for (int[] v : valid) {
@@ -210,7 +197,6 @@ public class WaterReminderManager {
         return -1;
     }
 
-    /** Returns true if the given clock minute falls within any valid segment (inclusive). */
     private static boolean isInValidSegment(List<int[]> valid, int clockMin) {
         for (int[] v : valid) {
             if (clockMin >= v[0] && clockMin <= v[1]) return true;
@@ -220,7 +206,7 @@ public class WaterReminderManager {
 
     // ─── Alarm intent helpers ─────────────────────────────────────────────────
 
-    static long nextTriggerMs(int hour, int min) {
+    public static long nextTriggerMs(int hour, int min) {
         java.util.Calendar cal = java.util.Calendar.getInstance();
         cal.set(java.util.Calendar.HOUR_OF_DAY, hour);
         cal.set(java.util.Calendar.MINUTE, min);

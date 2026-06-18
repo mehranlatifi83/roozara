@@ -1,4 +1,4 @@
-package ir.mehranlatifi83.helth;
+package ir.mehranlatifi83.helth.ui;
 
 import android.app.NotificationManager;
 import android.content.Context;
@@ -27,16 +27,22 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
+import ir.mehranlatifi83.helth.R;
+import ir.mehranlatifi83.helth.manager.ScheduleManager;
+import ir.mehranlatifi83.helth.service.SleepVpnService;
+import ir.mehranlatifi83.helth.service.WakeAlarmService;
+import ir.mehranlatifi83.helth.util.JalaliCalendar;
+
 import java.util.Calendar;
 import java.util.Locale;
 import java.util.Random;
 
 public class SleepLockActivity extends AppCompatActivity {
 
-    private static final String PREFS          = "helth_prefs";
-    private static final String KEY_LOCK_MODE  = "lock_exit_mode";
-    static final         String MODE_MATH      = "math";
-    static final         String MODE_TIMED     = "timed";
+    private static final String PREFS         = "helth_prefs";
+    private static final String KEY_LOCK_MODE = "lock_exit_mode";
+    public  static final String MODE_MATH     = "math";
+    public  static final String MODE_TIMED    = "timed";
 
     // Math mode views
     private LinearLayout      sectionMath;
@@ -46,20 +52,20 @@ public class SleepLockActivity extends AppCompatActivity {
     private TextView          textError;
 
     // Timed mode views
-    private LinearLayout  sectionTimed;
-    private TextView      textCountdown;
-    private TextView      textNoExitHint;
-    private TextView      textCountdownLabel;
+    private LinearLayout   sectionTimed;
+    private TextView       textCountdown;
+    private TextView       textNoExitHint;
+    private TextView       textCountdownLabel;
     private MaterialButton btnConfirmAwake;
 
     // Clock views (shared)
     private TextView textClock;
     private TextView textLockDate;
 
-    private int  mathAnswer;
-    private int  wrongCount = 0;
+    private int     mathAnswer;
+    private int     wrongCount  = 0;
     private boolean timedMode;
-    private boolean exitCalled = false;
+    private boolean exitCalled  = false;
 
     private CountDownTimer countDownTimer;
     private final Handler  clockHandler = new Handler(Looper.getMainLooper());
@@ -72,13 +78,11 @@ public class SleepLockActivity extends AppCompatActivity {
 
     // ─── Entry point ─────────────────────────────────────────────────────────
 
-    /** Launches the lock screen. Safe to call from any Activity context. */
     public static void launch(Context ctx) {
-        Intent i = new Intent(ctx, SleepLockActivity.class)
+        ctx.startActivity(new Intent(ctx, SleepLockActivity.class)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
                         | Intent.FLAG_ACTIVITY_CLEAR_TOP
-                        | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        ctx.startActivity(i);
+                        | Intent.FLAG_ACTIVITY_SINGLE_TOP));
     }
 
     // ─── Lifecycle ───────────────────────────────────────────────────────────
@@ -106,11 +110,8 @@ public class SleepLockActivity extends AppCompatActivity {
 
         updateClock();
 
-        if (timedMode) {
-            setupTimedMode();
-        } else {
-            setupMathMode();
-        }
+        if (timedMode) setupTimedMode();
+        else           setupMathMode();
     }
 
     @Override
@@ -124,8 +125,7 @@ public class SleepLockActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         clockHandler.removeCallbacks(clockTick);
-        // If the user pressed HOME (or any other means of leaving) without going through
-        // exitSleepMode(), immediately re-launch to pull the lock screen back to the front.
+        // Re-launch to prevent the user from navigating away via HOME.
         // SYSTEM_ALERT_WINDOW permission allows starting activities from the background.
         if (!exitCalled && !isFinishing()) {
             SleepLockActivity.launch(this);
@@ -136,9 +136,7 @@ public class SleepLockActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         if (countDownTimer != null) countDownTimer.cancel();
-        // Safety net: only stop the alarm service if exitSleepMode() was never called
-        // (e.g., system killed the activity). Avoids a double-stop when the user exits
-        // normally, since exitSleepMode() already sent ACTION_DISMISS.
+        // Safety net: only stop alarm if exitSleepMode() was never called
         if (!exitCalled) WakeAlarmService.stop(this);
     }
 
@@ -178,7 +176,6 @@ public class SleepLockActivity extends AppCompatActivity {
         int flags = WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-            // Recommended API for showing over the lock screen since API 27
             setShowWhenLocked(true);
             setTurnScreenOn(true);
         } else {
@@ -198,22 +195,15 @@ public class SleepLockActivity extends AppCompatActivity {
         ctrl.hide(WindowInsetsCompat.Type.systemBars());
     }
 
-    /** Registers an OnBackPressedCallback that does nothing, preventing
-     *  the user from dismissing the lock screen via the back gesture. */
     private void blockBackButton() {
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
-            @Override
-            public void handleOnBackPressed() { /* intentionally empty */ }
+            @Override public void handleOnBackPressed() { /* intentionally empty */ }
         });
     }
 
-    /** Intercepts hardware keys. Home and recents cannot be truly blocked
-     *  by apps, but returning true here suppresses the key event within
-     *  our activity, preventing unintended interactions. */
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
-                || keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
             return true;
         }
         return super.onKeyDown(keyCode, event);
@@ -224,9 +214,7 @@ public class SleepLockActivity extends AppCompatActivity {
     private void updateClock() {
         Calendar cal = Calendar.getInstance();
         textClock.setText(String.format(Locale.getDefault(),
-                "%02d:%02d",
-                cal.get(Calendar.HOUR_OF_DAY),
-                cal.get(Calendar.MINUTE)));
+                "%02d:%02d", cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE)));
         textLockDate.setText(buildPersianDate(cal));
     }
 
@@ -238,8 +226,7 @@ public class SleepLockActivity extends AppCompatActivity {
                 cal.get(Calendar.YEAR),
                 cal.get(Calendar.MONTH) + 1,
                 cal.get(Calendar.DAY_OF_MONTH));
-        return days[cal.get(Calendar.DAY_OF_WEEK) - 1]
-                + "،  " + j[2] + " " + months[j[1] - 1];
+        return days[cal.get(Calendar.DAY_OF_WEEK) - 1] + "،  " + j[2] + " " + months[j[1] - 1];
     }
 
     // ─── Countdown (timed mode) ───────────────────────────────────────────────
@@ -255,29 +242,24 @@ public class SleepLockActivity extends AppCompatActivity {
         long remaining = wakeMs - System.currentTimeMillis();
 
         countDownTimer = new CountDownTimer(remaining, 1000) {
-            @Override
-            public void onTick(long ms) {
+            @Override public void onTick(long ms) {
                 long h = ms / 3_600_000;
                 long m = (ms % 3_600_000) / 60_000;
                 long s = (ms % 60_000) / 1_000;
-                textCountdown.setText(
-                        String.format(Locale.getDefault(), "%02d:%02d:%02d", h, m, s));
+                textCountdown.setText(String.format(Locale.getDefault(), "%02d:%02d:%02d", h, m, s));
             }
-            @Override
-            public void onFinish() {
+            @Override public void onFinish() {
                 textCountdown.setText("00:00:00");
                 onWakeTimeReached();
             }
         }.start();
     }
 
-    /** Called when the countdown reaches zero. Plays the alarm and shows the confirm button. */
     private void onWakeTimeReached() {
         WakeAlarmService.start(this);
         textNoExitHint.setText(R.string.wake_time_reached);
         textCountdownLabel.setVisibility(View.GONE);
         btnConfirmAwake.setVisibility(View.VISIBLE);
-        // exitSleepMode() handles stopping the alarm and all cleanup
         btnConfirmAwake.setOnClickListener(v -> exitSleepMode());
     }
 
@@ -295,33 +277,30 @@ public class SleepLockActivity extends AppCompatActivity {
 
     // ─── Math captcha ────────────────────────────────────────────────────────
 
-    /** Generates a multi-step arithmetic problem. Difficulty scales with wrong attempts.
+    /**
+     * Generates a multi-step arithmetic problem. Difficulty scales with wrong attempts.
      *
      *  Level 0 (0–1 wrong): 2-digit × 1-digit  →  e.g. "34 × 7 = ؟"
-     *    Requires real mental multiplication; impossible to solve on autopilot.
-     *
      *  Level 1 (2–3 wrong): chained  →  e.g. "(8 × 7) + 23 = ؟"
-     *    Forces working memory: compute product first, then add/subtract.
-     *
      *  Level 2 (4+ wrong): double multiplication  →  e.g. "(6 × 8) + (4 × 7) = ؟"
-     *    Requires holding two intermediate results simultaneously. */
+     */
     private void generateNewProblem() {
         Random rnd = new Random();
         String problem;
-
         int difficulty = Math.min(wrongCount / 2, 2);
+
         switch (difficulty) {
             case 0: {
-                int a = 12 + rnd.nextInt(29); // 12–40
-                int b = 3  + rnd.nextInt(7);  // 3–9
+                int a = 12 + rnd.nextInt(29);
+                int b = 3  + rnd.nextInt(7);
                 mathAnswer = a * b;
                 problem = a + " × " + b + " = ؟";
                 break;
             }
             case 1: {
-                int a    = 3  + rnd.nextInt(7);  // 3–9
-                int b    = 3  + rnd.nextInt(7);  // 3–9
-                int c    = 11 + rnd.nextInt(29); // 11–39
+                int a    = 3  + rnd.nextInt(7);
+                int b    = 3  + rnd.nextInt(7);
+                int c    = 11 + rnd.nextInt(29);
                 int base = a * b;
                 if (rnd.nextBoolean() || base <= c) {
                     mathAnswer = base + c;
@@ -333,10 +312,10 @@ public class SleepLockActivity extends AppCompatActivity {
                 break;
             }
             default: {
-                int a = 3 + rnd.nextInt(7); // 3–9
-                int b = 3 + rnd.nextInt(7); // 3–9
-                int c = 3 + rnd.nextInt(6); // 3–8
-                int d = 3 + rnd.nextInt(6); // 3–8
+                int a = 3 + rnd.nextInt(7);
+                int b = 3 + rnd.nextInt(7);
+                int c = 3 + rnd.nextInt(6);
+                int d = 3 + rnd.nextInt(6);
                 mathAnswer = a * b + c * d;
                 problem = "(" + a + " × " + b + ") + (" + c + " × " + d + ") = ؟";
                 break;
@@ -376,8 +355,6 @@ public class SleepLockActivity extends AppCompatActivity {
         textError.setVisibility(View.VISIBLE);
         editAnswer.startAnimation(AnimationUtils.loadAnimation(this, R.anim.shake));
         editAnswer.setText("");
-
-        // Generate a fresh problem after a short delay so the user reads the message
         editAnswer.postDelayed(this::generateNewProblem, 900);
     }
 
@@ -385,7 +362,6 @@ public class SleepLockActivity extends AppCompatActivity {
 
     private void exitSleepMode() {
         exitCalled = true;
-        // Stop the wake alarm FIRST (sends ACTION_DISMISS → player.reset() immediately)
         WakeAlarmService.stop(this);
 
         stopService(new Intent(this, SleepVpnService.class));
@@ -397,7 +373,6 @@ public class SleepLockActivity extends AppCompatActivity {
         getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                 .edit().putBoolean("sleep_active", false).apply();
 
-        // Cancel lingering sleep notification (posted by SleepScheduleReceiver)
         getSystemService(NotificationManager.class).cancel(2);
 
         finish();

@@ -1,4 +1,4 @@
-package ir.mehranlatifi83.helth;
+package ir.mehranlatifi83.helth.util;
 
 import android.content.Context;
 import android.view.Gravity;
@@ -42,7 +42,6 @@ public class TimePickerHelper {
         LinearLayout content = new LinearLayout(ctx);
         content.setOrientation(LinearLayout.VERTICAL);
 
-        // Hour : Minute pickers row
         LinearLayout pickersRow = new LinearLayout(ctx);
         pickersRow.setOrientation(LinearLayout.HORIZONTAL);
         pickersRow.setGravity(Gravity.CENTER);
@@ -59,7 +58,6 @@ public class TimePickerHelper {
         pickersRow.addView(colon);
         pickersRow.addView(npMin);
 
-        // Toggle button
         TextView toggleBtn = new TextView(ctx);
         toggleBtn.setText("🕐  حالت ساعت دایره‌ای");
         toggleBtn.setTextSize(13);
@@ -103,25 +101,23 @@ public class TimePickerHelper {
 
         picker.show(fm, "clock_picker");
 
-        // After the dialog view is created, intercept the internal mode-toggle button
-        // so tapping the keyboard icon goes to our scroll mode instead of typing mode.
+        // After the dialog view inflates, intercept the internal mode-toggle button
+        // so tapping it returns to our scroll mode instead of the library's keyboard mode.
+        // The 300ms delay is necessary because the fragment view is not yet attached at
+        // show() time — the view tree only exists after the first layout pass.
         new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
             android.view.View root = picker.getView();
             if (root == null) return;
-            // Resolve the resource ID by name to avoid a hard dependency on the
-            // internal layout of Material Components.
-            // Resources from libraries are merged into the app's package at build time
+            // Library resources are merged into the app package at build time, so try
+            // the app package first, then the material library package as fallback.
             int btnId = root.getResources().getIdentifier(
-                    "material_timepicker_mode_button", "id",
-                    ctx.getPackageName());
-            // Fallback: try the material library package directly
+                    "material_timepicker_mode_button", "id", ctx.getPackageName());
             if (btnId == 0) {
                 btnId = root.getResources().getIdentifier(
                         "material_timepicker_mode_button", "id",
                         "com.google.android.material");
             }
             android.view.View modeBtn = (btnId != 0) ? root.findViewById(btnId) : null;
-            // Second fallback: traverse the view tree for an ImageButton in the content area
             if (modeBtn == null) modeBtn = findModeButton(root);
             if (modeBtn == null) return;
             modeBtn.setOnClickListener(v -> {
@@ -148,7 +144,7 @@ public class TimePickerHelper {
 
     /**
      * Traverses the picker's view tree to find the mode-toggle ImageButton.
-     * It's the only ImageButton that is NOT inside the dialog button bar.
+     * It is the only ImageButton / CheckableImageButton not in the dialog button bar.
      */
     private static android.view.View findModeButton(android.view.View root) {
         if (!(root instanceof android.view.ViewGroup)) return null;

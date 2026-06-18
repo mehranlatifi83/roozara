@@ -1,4 +1,4 @@
-package ir.mehranlatifi83.helth;
+package ir.mehranlatifi83.helth.receiver;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -12,34 +12,40 @@ import android.provider.Settings;
 
 import androidx.core.app.NotificationCompat;
 
+import ir.mehranlatifi83.helth.R;
+import ir.mehranlatifi83.helth.manager.ScheduleManager;
+import ir.mehranlatifi83.helth.service.SleepVpnService;
+import ir.mehranlatifi83.helth.service.WakeAlarmService;
+import ir.mehranlatifi83.helth.ui.MainActivity;
+import ir.mehranlatifi83.helth.ui.SleepLockActivity;
+
 public class SleepScheduleReceiver extends BroadcastReceiver {
 
     public static final String ACTION_SLEEP          = "ir.mehranlatifi83.helth.ACTION_SLEEP";
     public static final String ACTION_WAKE           = "ir.mehranlatifi83.helth.ACTION_WAKE";
     public static final String ACTION_SLEEP_REMINDER = "ir.mehranlatifi83.helth.ACTION_SLEEP_REMINDER";
 
-    private static final String CHANNEL_ID = "schedule_channel";
+    private static final String CHANNEL_ID  = "schedule_channel";
     private static final int    NOTIF_SLEEP = 2;
-    private static final int    NOTIF_WAKE  = 3;
 
     @Override
     public void onReceive(Context ctx, Intent intent) {
         String action = intent.getAction();
         if (ACTION_SLEEP_REMINDER.equals(action)) {
             showSleepReminderNotification(ctx);
-            ScheduleManager.scheduleSleepReminderAlarm(ctx); // reschedule for next day
+            ScheduleManager.scheduleSleepReminderAlarm(ctx);
         } else if (ACTION_SLEEP.equals(action)) {
             activateSleepMode(ctx);
-            ScheduleManager.scheduleSleepAlarm(ctx); // reschedule for next day
+            ScheduleManager.scheduleSleepAlarm(ctx);
         } else if (ACTION_WAKE.equals(action)) {
             deactivateSleepMode(ctx);
-            ScheduleManager.scheduleWakeAlarm(ctx);  // reschedule for next day
+            ScheduleManager.scheduleWakeAlarm(ctx);
         }
     }
 
     private void activateSleepMode(Context ctx) {
-        AudioManager am = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
-        am.setRingerMode(AudioManager.RINGER_MODE_SILENT);
+        ((AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE))
+                .setRingerMode(AudioManager.RINGER_MODE_SILENT);
 
         // Only start VPN if the user has already pre-authorized it (prepare returns null
         // when authorized). Without authorization, the tunnel silently fails to establish.
@@ -66,8 +72,8 @@ public class SleepScheduleReceiver extends BroadcastReceiver {
     }
 
     private void deactivateSleepMode(Context ctx) {
-        AudioManager am = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
-        am.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+        ((AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE))
+                .setRingerMode(AudioManager.RINGER_MODE_NORMAL);
 
         ctx.stopService(new Intent(ctx, SleepVpnService.class));
         SleepVpnService.disconnect();
@@ -75,14 +81,11 @@ public class SleepScheduleReceiver extends BroadcastReceiver {
         ctx.getSharedPreferences("helth_prefs", Context.MODE_PRIVATE)
                 .edit().putBoolean("sleep_active", false).apply();
 
-        // Start the alarm service — it plays the wake sound and shows a dismiss notification
         WakeAlarmService.start(ctx);
     }
 
-    /** Posts a high-priority notification with a full-screen intent that opens
-     *  the sleep lock screen. Static so it can be called from MainActivity too —
-     *  using a notification is the only reliable way to show an activity over
-     *  any foreground app on Android 10+ (API 29+). */
+    /** Posts a high-priority notification with a full-screen intent that opens the sleep lock
+     *  screen. Static so it can also be called from MainActivity for manual sleep activation. */
     public static void showSleepNotification(Context ctx) {
         ensureChannel(ctx);
 
@@ -90,20 +93,19 @@ public class SleepScheduleReceiver extends BroadcastReceiver {
                 ctx, 10,
                 new Intent(ctx, SleepLockActivity.class)
                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK),
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-        );
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-        NotificationManager nm = ctx.getSystemService(NotificationManager.class);
-        nm.notify(NOTIF_SLEEP, new NotificationCompat.Builder(ctx, CHANNEL_ID)
-                .setContentTitle(ctx.getString(R.string.notif_sleep_time_title))
-                .setContentText(ctx.getString(R.string.notif_sleep_time_text))
-                .setSmallIcon(R.drawable.ic_moon)
-                .setPriority(NotificationCompat.PRIORITY_MAX)
-                .setCategory(NotificationCompat.CATEGORY_ALARM)
-                .setFullScreenIntent(lockScreenPi, true)
-                .setOngoing(true)
-                .setAutoCancel(false)
-                .build());
+        ctx.getSystemService(NotificationManager.class)
+                .notify(NOTIF_SLEEP, new NotificationCompat.Builder(ctx, CHANNEL_ID)
+                        .setContentTitle(ctx.getString(R.string.notif_sleep_time_title))
+                        .setContentText(ctx.getString(R.string.notif_sleep_time_text))
+                        .setSmallIcon(R.drawable.ic_moon)
+                        .setPriority(NotificationCompat.PRIORITY_MAX)
+                        .setCategory(NotificationCompat.CATEGORY_ALARM)
+                        .setFullScreenIntent(lockScreenPi, true)
+                        .setOngoing(true)
+                        .setAutoCancel(false)
+                        .build());
     }
 
     private void showSleepReminderNotification(Context ctx) {
@@ -128,11 +130,9 @@ public class SleepScheduleReceiver extends BroadcastReceiver {
     }
 
     public static void ensureChannel(Context ctx) {
-        NotificationChannel ch = new NotificationChannel(
-                CHANNEL_ID,
-                ctx.getString(R.string.channel_schedule_name),
-                NotificationManager.IMPORTANCE_HIGH
-        );
-        ctx.getSystemService(NotificationManager.class).createNotificationChannel(ch);
+        ctx.getSystemService(NotificationManager.class).createNotificationChannel(
+                new NotificationChannel(CHANNEL_ID,
+                        ctx.getString(R.string.channel_schedule_name),
+                        NotificationManager.IMPORTANCE_HIGH));
     }
 }
