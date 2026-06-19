@@ -1,20 +1,27 @@
 *.iml
 .gradle
-/local.properties
+local.properties
 *.apk
 *.aab
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+.claude/
+
+# Build artifacts
+app/release/
+app/build/
+
+# Android Studio — machine-specific or workspace files
 /.idea/caches
 /.idea/libraries
 /.idea/modules.xml
 /.idea/workspace.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
-local.properties
-*.apk
-*.aab
-.claude/
+/.idea/deploymentTargetSelector.xml
+/.idea/runConfigurations.xml
+/.idea/migrations.xml
+/.idea/.name
