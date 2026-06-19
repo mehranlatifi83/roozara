@@ -97,6 +97,23 @@
     <string name="accept">Accept</string>
     <string name="decline">Decline</string>
 
+    <!-- User guide -->
+    <string name="guide_title">User Guide</string>
+    <string name="got_it">Got it</string>
+
+    <!-- More options menu -->
+    <string name="more_options">More options</string>
+    <string name="menu_guide">User Guide</string>
+    <string name="menu_privacy">Privacy Policy</string>
+    <string name="menu_language">Language</string>
+    <string name="menu_calendar">Calendar Type</string>
+    <string name="lang_persian">فارسی</string>
+    <string name="lang_english">English</string>
+    <string name="calendar_jalali">Solar Hijri (Jalali)</string>
+    <string name="calendar_gregorian">Gregorian</string>
+    <string name="language_title">App Language</string>
+    <string name="calendar_title">Calendar Type</string>
+
     <!-- Sound picker -->
     <string name="sound_picker_label">Wake-up sound</string>
     <string name="sound_default">System default ringtone</string>

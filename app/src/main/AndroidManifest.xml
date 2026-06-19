@@ -20,6 +20,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Salemzi"
+        android:localeConfig="@xml/locale_config"
         tools:targetApi="31">
 
         <activity

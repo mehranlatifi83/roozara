@@ -11,14 +11,19 @@ import android.net.VpnService;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.view.Gravity;
+import android.widget.ImageButton;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.os.LocaleListCompat;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.materialswitch.MaterialSwitch;
@@ -38,6 +43,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String KEY_OB_DND_SHOWN     = "onboarding_dnd_shown";
     private static final String KEY_OB_OVERLAY_SHOWN = "onboarding_overlay_shown";
     private static final String KEY_PRIVACY_ACCEPTED = "privacy_policy_accepted";
+    private static final String KEY_GUIDE_SHOWN      = "guide_shown";
+    private static final String KEY_USE_JALALI       = "use_jalali_calendar";
 
     private TextView       textSleepTime;
     private TextView       textWakeTime;
@@ -128,6 +135,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.row_lock_mode).setOnClickListener(v -> toggleLockMode());
         findViewById(R.id.row_overlay).setOnClickListener(v -> onOverlayRowTapped());
         findViewById(R.id.row_sound).setOnClickListener(v -> showSoundPickerDialog());
+        ((ImageButton) findViewById(R.id.btn_more)).setOnClickListener(v -> showMoreOptionsMenu(v));
     }
 
     private void setupBottomNav() {
@@ -257,7 +265,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void showPrivacyPolicyIfNeeded() {
         SharedPreferences prefs = getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-        if (prefs.getBoolean(KEY_PRIVACY_ACCEPTED, false)) return;
+        if (prefs.getBoolean(KEY_PRIVACY_ACCEPTED, false)) {
+            showGuideIfNeeded();
+            return;
+        }
 
         String lang = Locale.getDefault().getLanguage();
         String file = "fa".equals(lang) ? "privacy_policy_fa.html" : "privacy_policy_en.html";
@@ -269,9 +280,107 @@ public class MainActivity extends AppCompatActivity {
                 .setTitle(R.string.privacy_policy_title)
                 .setView(webView)
                 .setCancelable(false)
-                .setPositiveButton(R.string.accept, (d, w) ->
-                        prefs.edit().putBoolean(KEY_PRIVACY_ACCEPTED, true).apply())
+                .setPositiveButton(R.string.accept, (d, w) -> {
+                    prefs.edit().putBoolean(KEY_PRIVACY_ACCEPTED, true).apply();
+                    showGuideIfNeeded();
+                })
                 .setNegativeButton(R.string.decline, (d, w) -> finishAffinity())
+                .show();
+    }
+
+    private void showGuideIfNeeded() {
+        SharedPreferences prefs = getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        if (prefs.getBoolean(KEY_GUIDE_SHOWN, false)) return;
+        prefs.edit().putBoolean(KEY_GUIDE_SHOWN, true).apply();
+        showGuide();
+    }
+
+    private void showGuide() {
+        String lang = Locale.getDefault().getLanguage();
+        String file = "fa".equals(lang) ? "guide_fa.html" : "guide_en.html";
+
+        android.webkit.WebView webView = new android.webkit.WebView(this);
+        webView.loadUrl("file:///android_asset/" + file);
+
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.guide_title)
+                .setView(webView)
+                .setCancelable(false)
+                .setPositiveButton(R.string.got_it, null)
+                .show();
+    }
+
+    private void showPrivacyPolicy() {
+        String lang = Locale.getDefault().getLanguage();
+        String file = "fa".equals(lang) ? "privacy_policy_fa.html" : "privacy_policy_en.html";
+
+        android.webkit.WebView webView = new android.webkit.WebView(this);
+        webView.loadUrl("file:///android_asset/" + file);
+
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.privacy_policy_title)
+                .setView(webView)
+                .setPositiveButton(R.string.got_it, null)
+                .show();
+    }
+
+    // ─── More options menu ────────────────────────────────────────────────────
+
+    private void showMoreOptionsMenu(android.view.View anchor) {
+        PopupMenu popup = new PopupMenu(this, anchor, Gravity.END);
+        popup.getMenu().add(0, 1, 0, getString(R.string.menu_guide));
+        popup.getMenu().add(0, 2, 1, getString(R.string.menu_privacy));
+        popup.getMenu().add(0, 3, 2, getString(R.string.menu_language));
+        popup.getMenu().add(0, 4, 3, getString(R.string.menu_calendar));
+        popup.setOnMenuItemClickListener(item -> {
+            switch (item.getItemId()) {
+                case 1: showGuide();            return true;
+                case 2: showPrivacyPolicy();    return true;
+                case 3: showLanguagePicker();   return true;
+                case 4: showCalendarPicker();   return true;
+            }
+            return false;
+        });
+        popup.show();
+    }
+
+    private void showLanguagePicker() {
+        String[] labels = { getString(R.string.lang_persian), getString(R.string.lang_english) };
+        String[] tags   = { "fa", "en" };
+
+        LocaleListCompat current = AppCompatDelegate.getApplicationLocales();
+        String currentTag = current.isEmpty()
+                ? Locale.getDefault().getLanguage()
+                : current.get(0).getLanguage();
+        int checked = "fa".equals(currentTag) ? 0 : 1;
+
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.language_title)
+                .setSingleChoiceItems(labels, checked, (d, which) -> {
+                    AppCompatDelegate.setApplicationLocales(
+                            LocaleListCompat.forLanguageTags(tags[which]));
+                    d.dismiss();
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+    }
+
+    private void showCalendarPicker() {
+        SharedPreferences prefs = getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        boolean useJalali = prefs.getBoolean(KEY_USE_JALALI,
+                "fa".equals(Locale.getDefault().getLanguage()));
+
+        String[] labels = { getString(R.string.calendar_jalali), getString(R.string.calendar_gregorian) };
+        int checked = useJalali ? 0 : 1;
+
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.calendar_title)
+                .setSingleChoiceItems(labels, checked, (d, which) -> {
+                    prefs.edit().putBoolean(KEY_USE_JALALI, which == 0).apply();
+                    ((TextView) findViewById(R.id.text_date)).setText(buildLocalizedDate());
+                    d.dismiss();
+                })
+                .setNegativeButton(R.string.cancel, null)
                 .show();
     }
 
@@ -457,9 +566,10 @@ public class MainActivity extends AppCompatActivity {
     // ─── Date ────────────────────────────────────────────────────────────────
 
     private String buildLocalizedDate() {
-        Calendar cal  = Calendar.getInstance();
-        String   lang = java.util.Locale.getDefault().getLanguage();
-        if ("fa".equals(lang)) {
+        Calendar cal = Calendar.getInstance();
+        boolean useJalali = getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .getBoolean(KEY_USE_JALALI, "fa".equals(Locale.getDefault().getLanguage()));
+        if (useJalali) {
             String[] days   = {"یکشنبه","دوشنبه","سه‌شنبه","چهارشنبه","پنجشنبه","جمعه","شنبه"};
             String[] months = {"فروردین","اردیبهشت","خرداد","تیر","مرداد","شهریور",
                                "مهر","آبان","آذر","دی","بهمن","اسفند"};

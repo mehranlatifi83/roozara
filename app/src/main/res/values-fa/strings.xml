@@ -97,6 +97,23 @@
     <string name="accept">قبول می‌کنم</string>
     <string name="decline">نمی‌پذیرم</string>
 
+    <!-- User guide -->
+    <string name="guide_title">راهنمای برنامه</string>
+    <string name="got_it">متوجه شدم</string>
+
+    <!-- More options menu -->
+    <string name="more_options">بیشتر</string>
+    <string name="menu_guide">راهنمای برنامه</string>
+    <string name="menu_privacy">حریم خصوصی</string>
+    <string name="menu_language">زبان برنامه</string>
+    <string name="menu_calendar">نوع تقویم</string>
+    <string name="lang_persian">فارسی</string>
+    <string name="lang_english">English</string>
+    <string name="calendar_jalali">شمسی (جلالی)</string>
+    <string name="calendar_gregorian">میلادی</string>
+    <string name="language_title">زبان برنامه</string>
+    <string name="calendar_title">نوع تقویم</string>
+
     <!-- Sound picker -->
     <string name="sound_picker_label">صدای بیداری</string>
     <string name="sound_default">زنگ پیش‌فرض سیستم</string>

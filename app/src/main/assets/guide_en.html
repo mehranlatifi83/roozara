@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body { font-family: sans-serif; padding: 16px 16px 32px; color: #e0e0e0; background: #1a1a1a; line-height: 1.7; margin: 0; }
+  h1 { color: #bb86fc; font-size: 20px; margin-bottom: 4px; }
+  h2 { color: #bb86fc; font-size: 15px; margin-top: 28px; border-bottom: 1px solid #333; padding-bottom: 6px; }
+  p, li { font-size: 14px; color: #ccc; margin: 6px 0; }
+  ul { padding-left: 20px; margin: 8px 0; }
+  strong { color: #e0e0e0; }
+  .note { background: #252535; border-left: 3px solid #bb86fc; padding: 10px 12px; border-radius: 4px; font-size: 13px; color: #bbb; margin: 12px 0; }
+  .sub { font-size: 13px; color: #999; margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<h1>User Guide</h1>
+<p class="sub">Everything you need to know about Salemzi</p>
+
+<h2>Sleep Schedule</h2>
+<p>Tap the schedule card on the main screen to set your <strong>sleep time</strong> and <strong>wake time</strong>. Then flip the switch to activate.</p>
+<ul>
+  <li><strong>Switch ON:</strong> At your sleep time every night, the phone silences, internet is blocked, and the lock screen activates automatically. A reminder is sent 15 minutes before.</li>
+  <li><strong>Switch OFF:</strong> Nothing happens automatically. Your saved times are kept for when you re-enable it.</li>
+  <li>Alarms survive phone restarts — they are restored automatically after reboot.</li>
+</ul>
+<div class="note">You must set both a sleep time and a wake time before enabling the schedule.</div>
+
+<h2>Challenge Mode</h2>
+<p>Controls how hard it is to dismiss the wake alarm — and the early-exit button. Set it from the main screen.</p>
+<ul>
+  <li><strong>Simple:</strong> Tap a button to confirm you're awake. Best if you just want schedule enforcement without extra friction.</li>
+  <li><strong>Math:</strong> Solve a math problem. Difficulty increases with each wrong answer:
+    <ul>
+      <li>Easy: single multiplication (e.g. 6 × 7)</li>
+      <li>Medium: multiply then add/subtract (e.g. (4 × 8) + 19)</li>
+      <li>Hard: product of two multiplications (e.g. (3 × 6) × (2 × 9))</li>
+    </ul>
+  </li>
+  <li><strong>Memory:</strong> A random 5-digit sequence is displayed for 4 seconds, then hidden. Type it from memory. Tap <em>Retry</em> to get a new sequence.</li>
+</ul>
+
+<h2>Early Exit</h2>
+<p>After <strong>half the sleep window</strong> has passed, an Early Exit button appears on the lock screen. To use it, you must pass the same challenge as the wake alarm. It is not a free bypass.</p>
+
+<h2>Wake Alarm</h2>
+<p>At your wake time, an alarm rings and the challenge screen appears. The alarm will not stop until the challenge is completed — there is no snooze or dismiss button.</p>
+<ul>
+  <li>If you navigate away, the challenge screen remains reachable from the notification shade and the Recents switcher.</li>
+  <li>If you are already on the lock screen when wake time arrives, no duplicate notification is sent.</li>
+</ul>
+
+<h2>Alarm Sound</h2>
+<p>Tap <strong>Alarm Sound</strong> on the main screen to choose your wake alarm audio:</p>
+<ul>
+  <li><strong>System ringtone:</strong> Browse your phone's built-in alarm sounds.</li>
+  <li><strong>Audio file:</strong> Pick any audio file from your storage.</li>
+</ul>
+<p>If nothing is selected, the system default alarm is used.</p>
+
+<h2>Draw Over Other Apps</h2>
+<p>An optional permission that changes how the lock screen appears:</p>
+<ul>
+  <li><strong>Granted:</strong> The lock screen appears instantly on top of any app — including the home screen — the moment your sleep time arrives.</li>
+  <li><strong>Not granted:</strong> A high-priority full-screen notification is used instead. This may not cover the foreground app on all devices.</li>
+</ul>
+<div class="note">Granting this permission is strongly recommended for reliable sleep locking.</div>
+
+<h2>Water Reminders</h2>
+<p>Open the <strong>Water</strong> tab at the bottom of the screen to set up hydration reminders.</p>
+<ul>
+  <li>Set your <strong>meal times</strong> (breakfast, lunch, dinner) — reminders are automatically spaced around them for optimal hydration windows.</li>
+  <li>8 reminders are sent throughout the day.</li>
+  <li><strong>Switch ON:</strong> Reminders are active and rescheduled automatically every day.</li>
+  <li><strong>Switch OFF:</strong> All water reminders are cancelled. Your settings are saved.</li>
+  <li>Delivered as an overlay popup (if permission granted) or a notification.</li>
+</ul>
+
+<h2>Permissions Explained</h2>
+<ul>
+  <li><strong>Post Notifications:</strong> Required for sleep, wake, and water alerts.</li>
+  <li><strong>Schedule Exact Alarms:</strong> Required for the sleep timer and water reminders to fire at the exact right time.</li>
+  <li><strong>Do Not Disturb access:</strong> Required to silence your ringer at bedtime and restore it at wake time.</li>
+  <li><strong>Draw Over Other Apps:</strong> Optional — for a true full-screen lock overlay.</li>
+  <li><strong>Full-Screen Intents (Android 14+):</strong> Required for the wake alarm to appear over the lock screen.</li>
+</ul>
+
+</body>
+</html>

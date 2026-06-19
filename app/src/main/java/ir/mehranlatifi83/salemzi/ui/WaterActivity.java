@@ -1,12 +1,20 @@
 package ir.mehranlatifi83.salemzi.ui;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.view.Gravity;
+import android.widget.ImageButton;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.core.os.LocaleListCompat;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.materialswitch.MaterialSwitch;
@@ -56,6 +64,7 @@ public class WaterActivity extends AppCompatActivity {
         textReminderList  = findViewById(R.id.text_reminder_list);
 
         ((TextView) findViewById(R.id.text_water_date)).setText(buildLocalizedDate());
+        ((ImageButton) findViewById(R.id.btn_more)).setOnClickListener(v -> showMoreOptionsMenu(v));
     }
 
     private void setupBottomNav() {
@@ -175,12 +184,93 @@ public class WaterActivity extends AppCompatActivity {
         textReminderList.setText(sb.toString());
     }
 
+    // ─── More options menu ────────────────────────────────────────────────────
+
+    private void showMoreOptionsMenu(android.view.View anchor) {
+        PopupMenu popup = new PopupMenu(this, anchor, Gravity.END);
+        popup.getMenu().add(0, 1, 0, getString(R.string.menu_guide));
+        popup.getMenu().add(0, 2, 1, getString(R.string.menu_privacy));
+        popup.getMenu().add(0, 3, 2, getString(R.string.menu_language));
+        popup.getMenu().add(0, 4, 3, getString(R.string.menu_calendar));
+        popup.setOnMenuItemClickListener(item -> {
+            switch (item.getItemId()) {
+                case 1: showGuide();          return true;
+                case 2: showPrivacyPolicy();  return true;
+                case 3: showLanguagePicker(); return true;
+                case 4: showCalendarPicker(); return true;
+            }
+            return false;
+        });
+        popup.show();
+    }
+
+    private void showGuide() {
+        String lang = Locale.getDefault().getLanguage();
+        String file = "fa".equals(lang) ? "guide_fa.html" : "guide_en.html";
+        android.webkit.WebView wv = new android.webkit.WebView(this);
+        wv.loadUrl("file:///android_asset/" + file);
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.guide_title)
+                .setView(wv)
+                .setPositiveButton(R.string.got_it, null)
+                .show();
+    }
+
+    private void showPrivacyPolicy() {
+        String lang = Locale.getDefault().getLanguage();
+        String file = "fa".equals(lang) ? "privacy_policy_fa.html" : "privacy_policy_en.html";
+        android.webkit.WebView wv = new android.webkit.WebView(this);
+        wv.loadUrl("file:///android_asset/" + file);
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.privacy_policy_title)
+                .setView(wv)
+                .setPositiveButton(R.string.got_it, null)
+                .show();
+    }
+
+    private void showLanguagePicker() {
+        String[] labels = { getString(R.string.lang_persian), getString(R.string.lang_english) };
+        String[] tags   = { "fa", "en" };
+        LocaleListCompat current = AppCompatDelegate.getApplicationLocales();
+        String currentTag = current.isEmpty()
+                ? Locale.getDefault().getLanguage()
+                : current.get(0).getLanguage();
+        int checked = "fa".equals(currentTag) ? 0 : 1;
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.language_title)
+                .setSingleChoiceItems(labels, checked, (d, which) -> {
+                    AppCompatDelegate.setApplicationLocales(
+                            LocaleListCompat.forLanguageTags(tags[which]));
+                    d.dismiss();
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+    }
+
+    private void showCalendarPicker() {
+        SharedPreferences prefs = getSharedPreferences("helth_prefs", Context.MODE_PRIVATE);
+        boolean useJalali = prefs.getBoolean("use_jalali_calendar",
+                "fa".equals(Locale.getDefault().getLanguage()));
+        String[] labels = { getString(R.string.calendar_jalali), getString(R.string.calendar_gregorian) };
+        int checked = useJalali ? 0 : 1;
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.calendar_title)
+                .setSingleChoiceItems(labels, checked, (d, which) -> {
+                    prefs.edit().putBoolean("use_jalali_calendar", which == 0).apply();
+                    ((TextView) findViewById(R.id.text_water_date)).setText(buildLocalizedDate());
+                    d.dismiss();
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+    }
+
     // ─── Date ────────────────────────────────────────────────────────────────
 
     private String buildLocalizedDate() {
-        Calendar cal  = Calendar.getInstance();
-        String   lang = java.util.Locale.getDefault().getLanguage();
-        if ("fa".equals(lang)) {
+        Calendar cal = Calendar.getInstance();
+        boolean useJalali = getSharedPreferences("helth_prefs", Context.MODE_PRIVATE)
+                .getBoolean("use_jalali_calendar", "fa".equals(Locale.getDefault().getLanguage()));
+        if (useJalali) {
             String[] months = {"فروردین","اردیبهشت","خرداد","تیر","مرداد","شهریور",
                                "مهر","آبان","آذر","دی","بهمن","اسفند"};
             int[] j = JalaliCalendar.toJalali(
