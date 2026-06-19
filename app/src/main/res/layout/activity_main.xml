@@ -49,59 +49,6 @@
             android:orientation="vertical"
             android:gravity="center">
 
-            <!-- Sleep Circle -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/card_circle"
-                android:layout_width="200dp"
-                android:layout_height="200dp"
-                app:cardCornerRadius="100dp"
-                app:cardElevation="16dp"
-                app:cardBackgroundColor="@color/colorSurface"
-                app:strokeWidth="2dp"
-                app:strokeColor="@color/colorSurface">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:gravity="center">
-
-                    <ImageView
-                        android:id="@+id/icon_sleep"
-                        android:layout_width="52dp"
-                        android:layout_height="52dp"
-                        android:src="@drawable/ic_moon"
-                        android:tint="@color/colorOnSurfaceVariant"/>
-
-                    <TextView
-                        android:text="@string/sleep_mode"
-                        android:textSize="15sp"
-                        android:textColor="@color/colorOnSurface"
-                        android:layout_marginTop="12dp"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"/>
-
-                    <TextView
-                        android:id="@+id/text_status"
-                        android:text="@string/status_inactive"
-                        android:textSize="13sp"
-                        android:textColor="@color/colorOnSurfaceVariant"
-                        android:layout_marginTop="3dp"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"/>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Toggle Button -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_toggle"
-                android:layout_width="280dp"
-                android:layout_height="52dp"
-                android:layout_marginTop="32dp"
-                android:text="@string/btn_enable_sleep"
-                android:textSize="15sp"
-                app:cornerRadius="26dp"/>
-
             <!-- Settings card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="280dp"

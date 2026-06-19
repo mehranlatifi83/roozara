@@ -6,14 +6,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.res.ColorStateList;
-import android.media.AudioManager;
 import android.net.Uri;
 import android.net.VpnService;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -24,14 +21,10 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.button.MaterialButton;
-import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.materialswitch.MaterialSwitch;
 
 import ir.mehranlatifi83.salemzi.R;
 import ir.mehranlatifi83.salemzi.manager.ScheduleManager;
-import ir.mehranlatifi83.salemzi.receiver.SleepScheduleReceiver;
-import ir.mehranlatifi83.salemzi.service.SleepVpnService;
 import ir.mehranlatifi83.salemzi.service.WakeAlarmService;
 import ir.mehranlatifi83.salemzi.util.JalaliCalendar;
 import ir.mehranlatifi83.salemzi.util.TimePickerHelper;
@@ -42,24 +35,18 @@ import java.util.Locale;
 public class MainActivity extends AppCompatActivity {
 
     private static final String PREFS                = "helth_prefs";
-    private static final String KEY_SLEEP_ACTIVE     = "sleep_active";
     private static final String KEY_OB_DND_SHOWN     = "onboarding_dnd_shown";
     private static final String KEY_OB_OVERLAY_SHOWN = "onboarding_overlay_shown";
     private static final String KEY_PRIVACY_ACCEPTED = "privacy_policy_accepted";
 
-    private MaterialButton   btnToggle;
-    private TextView         textStatus;
-    private MaterialCardView cardCircle;
-    private ImageView        iconSleep;
-    private TextView         textSleepTime;
-    private TextView         textWakeTime;
-    private TextView         textScheduleHint;
-    private MaterialSwitch   switchSchedule;
-    private TextView         textLockMode;
-    private TextView         textOverlayStatus;
-    private TextView         textSoundName;
+    private TextView       textSleepTime;
+    private TextView       textWakeTime;
+    private TextView       textScheduleHint;
+    private MaterialSwitch switchSchedule;
+    private TextView       textLockMode;
+    private TextView       textOverlayStatus;
+    private TextView       textSoundName;
 
-    private boolean isSleepActive        = false;
     private boolean pendingScheduleEnable = false;
 
     private final ActivityResultLauncher<Intent> vpnLauncher = registerForActivityResult(
@@ -70,8 +57,6 @@ public class MainActivity extends AppCompatActivity {
                         pendingScheduleEnable = false;
                         ScheduleManager.setScheduleEnabled(this, true);
                         updateScheduleUI();
-                    } else {
-                        startSleepMode();
                     }
                 } else {
                     pendingScheduleEnable = false;
@@ -117,9 +102,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        isSleepActive = getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                .getBoolean(KEY_SLEEP_ACTIVE, false);
-        updateSleepUI();
         updateScheduleUI();
         updateOverlayUI();
         checkOnboarding();
@@ -128,10 +110,6 @@ public class MainActivity extends AppCompatActivity {
     // ─── View wiring ─────────────────────────────────────────────────────────
 
     private void bindViews() {
-        btnToggle         = findViewById(R.id.btn_toggle);
-        textStatus        = findViewById(R.id.text_status);
-        cardCircle        = findViewById(R.id.card_circle);
-        iconSleep         = findViewById(R.id.icon_sleep);
         textSleepTime     = findViewById(R.id.text_sleep_time);
         textWakeTime      = findViewById(R.id.text_wake_time);
         textScheduleHint  = findViewById(R.id.text_schedule_hint);
@@ -142,16 +120,11 @@ public class MainActivity extends AppCompatActivity {
 
         ((TextView) findViewById(R.id.text_date)).setText(buildLocalizedDate());
 
-        isSleepActive = getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                .getBoolean(KEY_SLEEP_ACTIVE, false);
-
-        updateSleepUI();
         updateScheduleUI();
         updateLockModeUI();
         updateOverlayUI();
         updateSoundUI();
 
-        btnToggle.setOnClickListener(v -> toggleSleepMode());
         findViewById(R.id.row_lock_mode).setOnClickListener(v -> toggleLockMode());
         findViewById(R.id.row_overlay).setOnClickListener(v -> onOverlayRowTapped());
         findViewById(R.id.row_sound).setOnClickListener(v -> showSoundPickerDialog());
@@ -174,70 +147,6 @@ public class MainActivity extends AppCompatActivity {
     private void setupScheduleCard() {
         findViewById(R.id.card_schedule).setOnClickListener(v -> showSleepTimePicker());
         switchSchedule.setOnCheckedChangeListener((btn, checked) -> onScheduleSwitchChanged(checked));
-    }
-
-    // ─── Sleep mode toggle ───────────────────────────────────────────────────
-
-    private void toggleSleepMode() {
-        if (isSleepActive) {
-            stopSleepMode();
-        } else {
-            Intent vpnIntent = VpnService.prepare(this);
-            if (vpnIntent != null) vpnLauncher.launch(vpnIntent);
-            else                   startSleepMode();
-        }
-    }
-
-    private void startSleepMode() {
-        NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !nm.isNotificationPolicyAccessGranted()) {
-            showDndPermissionDialog();
-            return;
-        }
-
-        startForegroundService(new Intent(this, SleepVpnService.class));
-        ((AudioManager) getSystemService(Context.AUDIO_SERVICE))
-                .setRingerMode(AudioManager.RINGER_MODE_SILENT);
-
-        isSleepActive = true;
-        persistSleepState();
-        saveSleepStartTime();
-        updateSleepUI();
-
-        SleepScheduleReceiver.showSleepNotification(this);
-    }
-
-    private void stopSleepMode() {
-        // If the wake alarm is currently ringing, stop it first.
-        if (getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                .getBoolean(WakeAlarmService.KEY_WAKE_ALARM_ACTIVE, false)) {
-            WakeAlarmService.stop(this);
-        }
-
-        stopService(new Intent(this, SleepVpnService.class));
-        SleepVpnService.disconnect();
-        ((AudioManager) getSystemService(Context.AUDIO_SERVICE))
-                .setRingerMode(AudioManager.RINGER_MODE_NORMAL);
-
-        getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                .edit()
-                .putBoolean(KEY_SLEEP_ACTIVE, false)
-                .putBoolean(WakeAlarmService.KEY_WAKE_ALARM_ACTIVE, false)
-                .remove(SleepLockActivity.KEY_SLEEP_START)
-                .apply();
-
-        isSleepActive = false;
-        updateSleepUI();
-    }
-
-    private void persistSleepState() {
-        getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                .edit().putBoolean(KEY_SLEEP_ACTIVE, isSleepActive).apply();
-    }
-
-    private void saveSleepStartTime() {
-        getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                .edit().putLong(SleepLockActivity.KEY_SLEEP_START, System.currentTimeMillis()).apply();
     }
 
     // ─── Schedule time pickers ───────────────────────────────────────────────
@@ -294,26 +203,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // ─── UI state ────────────────────────────────────────────────────────────
-
-    private void updateSleepUI() {
-        int primary = ContextCompat.getColor(this, R.color.colorPrimary);
-        int muted   = ContextCompat.getColor(this, R.color.colorOnSurfaceVariant);
-        int surface = ContextCompat.getColor(this, R.color.colorSurface);
-
-        if (isSleepActive) {
-            textStatus.setText(R.string.status_active);
-            textStatus.setTextColor(primary);
-            btnToggle.setText(R.string.btn_disable_sleep);
-            cardCircle.setStrokeColor(primary);
-            iconSleep.setImageTintList(ColorStateList.valueOf(primary));
-        } else {
-            textStatus.setText(R.string.status_inactive);
-            textStatus.setTextColor(muted);
-            btnToggle.setText(R.string.btn_enable_sleep);
-            cardCircle.setStrokeColor(surface);
-            iconSleep.setImageTintList(ColorStateList.valueOf(muted));
-        }
-    }
 
     private void updateScheduleUI() {
         int[] sleep = ScheduleManager.getSleepTime(this);
