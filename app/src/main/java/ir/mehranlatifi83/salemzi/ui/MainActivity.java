@@ -328,16 +328,16 @@ public class MainActivity extends AppCompatActivity {
 
     private void showMoreOptionsMenu(android.view.View anchor) {
         PopupMenu popup = new PopupMenu(this, anchor, Gravity.END);
-        popup.getMenu().add(0, 1, 0, getString(R.string.menu_guide));
-        popup.getMenu().add(0, 2, 1, getString(R.string.menu_privacy));
-        popup.getMenu().add(0, 3, 2, getString(R.string.menu_language));
-        popup.getMenu().add(0, 4, 3, getString(R.string.menu_calendar));
+        popup.getMenu().add(0, 1, 0, getString(R.string.menu_language));
+        popup.getMenu().add(0, 2, 1, getString(R.string.menu_calendar));
+        popup.getMenu().add(0, 3, 2, getString(R.string.menu_guide));
+        popup.getMenu().add(0, 4, 3, getString(R.string.menu_privacy));
         popup.setOnMenuItemClickListener(item -> {
             switch (item.getItemId()) {
-                case 1: showGuide();            return true;
-                case 2: showPrivacyPolicy();    return true;
-                case 3: showLanguagePicker();   return true;
-                case 4: showCalendarPicker();   return true;
+                case 1: showLanguagePicker(); return true;
+                case 2: showCalendarPicker(); return true;
+                case 3: showGuide();          return true;
+                case 4: showPrivacyPolicy();  return true;
             }
             return false;
         });
