@@ -25,6 +25,8 @@
     <!-- Schedule -->
     <string name="picker_sleep_title">ساعت خواب</string>
     <string name="picker_wake_title">ساعت بیداری</string>
+    <string name="picker_hour_label">ساعت</string>
+    <string name="picker_minute_label">دقیقه</string>
     <string name="schedule_active">برنامه خواب فعاله</string>
     <string name="schedule_inactive">برنامه خواب غیرفعاله</string>
     <string name="tap_to_set">برای تنظیم ضربه بزن</string>

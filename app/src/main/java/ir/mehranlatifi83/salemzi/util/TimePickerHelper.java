@@ -12,6 +12,8 @@ import androidx.fragment.app.FragmentManager;
 import com.google.android.material.timepicker.MaterialTimePicker;
 import com.google.android.material.timepicker.TimeFormat;
 
+import ir.mehranlatifi83.salemzi.R;
+
 import java.util.Locale;
 
 /**
@@ -48,15 +50,21 @@ public class TimePickerHelper {
         pickersRow.setPadding(pad, dp(ctx, 8), pad, 0);
 
         NumberPicker npHour = makeNumberPicker(ctx, 0, 23, initialHour);
+        NumberPicker npMin  = makeNumberPicker(ctx, 0, 59, initialMin);
+
+        LinearLayout hourColumn = labeledColumn(ctx, npHour, R.string.picker_hour_label);
+
         TextView colon = new TextView(ctx);
         colon.setText(":");
         colon.setTextSize(28);
-        colon.setPadding(dp(ctx, 16), 0, dp(ctx, 16), 0);
-        NumberPicker npMin = makeNumberPicker(ctx, 0, 59, initialMin);
+        colon.setPadding(dp(ctx, 12), 0, dp(ctx, 12), dp(ctx, 22));
+        colon.setGravity(Gravity.CENTER);
 
-        pickersRow.addView(npHour);
+        LinearLayout minuteColumn = labeledColumn(ctx, npMin, R.string.picker_minute_label);
+
+        pickersRow.addView(hourColumn);
         pickersRow.addView(colon);
-        pickersRow.addView(npMin);
+        pickersRow.addView(minuteColumn);
 
         TextView toggleBtn = new TextView(ctx);
         toggleBtn.setText("🕐  حالت ساعت دایره‌ای");
@@ -138,8 +146,33 @@ public class TimePickerHelper {
         np.setValue(value);
         np.setWrapSelectorWheel(true);
         np.setFormatter(i -> String.format(Locale.getDefault(), "%02d", i));
+        // NumberPicker's built-in tap-to-type EditText only commits the value (and
+        // updates the faded prev/next rows) on focus loss or IME "done" — typing a
+        // digit otherwise leaves the wheel stale until Enter is pressed. Disabling
+        // descendant focus removes that broken text-edit path entirely, leaving pure
+        // scroll/fling and tap-to-increment, both of which update immediately.
+        np.setDescendantFocusability(NumberPicker.FOCUS_BLOCK_DESCENDANTS);
         np.invalidate();
         return np;
+    }
+
+    /** Wraps a NumberPicker with a small caption below it so it's unambiguous which
+     *  column is hours and which is minutes. */
+    private static LinearLayout labeledColumn(Context ctx, NumberPicker picker, int labelRes) {
+        LinearLayout column = new LinearLayout(ctx);
+        column.setOrientation(LinearLayout.VERTICAL);
+        column.setGravity(Gravity.CENTER);
+
+        TextView label = new TextView(ctx);
+        label.setText(labelRes);
+        label.setTextSize(12);
+        label.setGravity(Gravity.CENTER);
+        label.setAlpha(0.7f);
+        label.setPadding(0, dp(ctx, 4), 0, 0);
+
+        column.addView(picker);
+        column.addView(label);
+        return column;
     }
 
     /**
