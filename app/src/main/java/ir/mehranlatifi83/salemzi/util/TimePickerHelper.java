@@ -159,11 +159,13 @@ public class TimePickerHelper {
     /**
      * NumberPicker's built-in tap-to-type EditText only commits a typed digit (and
      * updates the faded prev/next rows) on focus loss or the IME "done" action, so the
-     * wheel looks stale until Enter is pressed. There's no public API to change that,
-     * so reflection is used to reach the internal EditText and value field directly:
-     * every keystroke updates the picker's backing value and redraws the wheel, without
-     * touching the EditText's own text/cursor (which would otherwise fight the user's
-     * typing via the picker's zero-padding formatter).
+     * wheel looks stale until Enter is pressed. There's no public API to drive the wheel
+     * without going through setValue(), and setValue() unconditionally reformats the
+     * EditText via the zero-padding formatter (fighting the user's in-progress typing
+     * and jumping the cursor). So: call the real setValue() to get a correctly
+     * recomputed wheel, then immediately restore the EditText's text/cursor to what the
+     * user actually typed (unless the value had to be clamped, in which case show the
+     * clamped number instead).
      */
     private static void enableLiveTypedSync(NumberPicker picker) {
         try {
@@ -171,9 +173,6 @@ public class TimePickerHelper {
             inputField.setAccessible(true);
             EditText input = (EditText) inputField.get(picker);
             if (input == null) return;
-
-            Field valueField = NumberPicker.class.getDeclaredField("mValue");
-            valueField.setAccessible(true);
 
             // First digit typed replaces the current value instead of appending to it.
             input.setSelectAllOnFocus(true);
@@ -190,16 +189,17 @@ public class TimePickerHelper {
                         int typed = Integer.parseInt(raw);
                         int clamped = Math.max(picker.getMinValue(),
                                 Math.min(picker.getMaxValue(), typed));
-                        valueField.set(picker, clamped);
-                        picker.invalidate();
-                        if (clamped != typed) {
-                            selfUpdate.set(true);
-                            String fixed = String.valueOf(clamped);
-                            input.setText(fixed);
-                            input.setSelection(fixed.length());
-                            selfUpdate.set(false);
-                        }
-                    } catch (NumberFormatException | IllegalAccessException ignored) {}
+                        int cursor = input.getSelectionStart();
+
+                        selfUpdate.set(true);
+                        picker.setValue(clamped);
+                        String display = (clamped == typed) ? raw : String.valueOf(clamped);
+                        input.setText(display);
+                        input.setSelection(Math.min(cursor, display.length()));
+                        selfUpdate.set(false);
+                    } catch (NumberFormatException ignored) {
+                        selfUpdate.set(false);
+                    }
                 }
             });
         } catch (Exception ignored) {
