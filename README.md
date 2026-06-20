@@ -1,9 +1,5 @@
 <p align="right"><a href="README.fa.md">فارسی</a></p>
 
-<p align="center">
-  <img src="app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" width="96" alt="Salemzi"/>
-</p>
-
 <h1 align="center">Salemzi — سالم‌زی</h1>
 
 <p align="center">Sleep on schedule. Wake up intentionally. Stay hydrated.</p>
@@ -57,9 +53,9 @@ At wake time, an alarm rings and the challenge screen appears:
 
 ### Sleep Schedule
 
-- **Scheduled mode:** sleep and wake activate automatically at your set times every day via `AlarmManager`. A reminder notification is sent 15 minutes before bedtime.
-- **Manual mode:** start sleep mode immediately with one tap, without waiting for the scheduled time.
+- Sleep and wake activate automatically at your set times every day via `AlarmManager`. A reminder notification is sent 15 minutes before bedtime.
 - All alarms are restored automatically after a device reboot.
+- App language (Persian/English) and calendar type (Jalali/Gregorian) can be changed independently from the in-app menu.
 
 ### Water Reminders
 
