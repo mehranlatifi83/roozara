@@ -206,8 +206,6 @@
                 android:layout_width="280dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:clickable="true"
-                android:focusable="true"
                 app:cardBackgroundColor="@color/colorSurface"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="0dp"
@@ -257,11 +255,17 @@
 
                         <!-- Sleep time -->
                         <LinearLayout
+                            android:id="@+id/row_sleep_time"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:orientation="vertical"
-                            android:gravity="center">
+                            android:gravity="center"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?attr/selectableItemBackground"
+                            android:paddingTop="6dp"
+                            android:paddingBottom="6dp">
 
                             <ImageView
                                 android:layout_width="18dp"
@@ -296,11 +300,17 @@
 
                         <!-- Wake time -->
                         <LinearLayout
+                            android:id="@+id/row_wake_time"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:orientation="vertical"
-                            android:gravity="center">
+                            android:gravity="center"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?attr/selectableItemBackground"
+                            android:paddingTop="6dp"
+                            android:paddingBottom="6dp">
 
                             <ImageView
                                 android:layout_width="18dp"

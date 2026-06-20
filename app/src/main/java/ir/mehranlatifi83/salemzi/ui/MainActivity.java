@@ -153,7 +153,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupScheduleCard() {
-        findViewById(R.id.card_schedule).setOnClickListener(v -> showSleepTimePicker());
+        findViewById(R.id.row_sleep_time).setOnClickListener(v -> showSleepTimePicker());
+        findViewById(R.id.row_wake_time).setOnClickListener(v -> showWakeTimePicker());
         switchSchedule.setOnCheckedChangeListener((btn, checked) -> onScheduleSwitchChanged(checked));
     }
 
@@ -166,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
         TimePickerHelper.show(getSupportFragmentManager(), this,
                 getString(R.string.picker_sleep_title), h, m, (hour, min) -> {
                     ScheduleManager.saveSleepTime(this, hour, min);
-                    showWakeTimePicker();
+                    onScheduleTimeChanged();
                 });
     }
 
@@ -177,13 +178,17 @@ public class MainActivity extends AppCompatActivity {
         TimePickerHelper.show(getSupportFragmentManager(), this,
                 getString(R.string.picker_wake_title), h, m, (hour, min) -> {
                     ScheduleManager.saveWakeTime(this, hour, min);
-                    if (ScheduleManager.isScheduleEnabled(this)) {
-                        ScheduleManager.scheduleSleepAlarm(this);
-                        ScheduleManager.scheduleWakeAlarm(this);
-                        ScheduleManager.scheduleSleepReminderAlarm(this);
-                    }
-                    updateScheduleUI();
+                    onScheduleTimeChanged();
                 });
+    }
+
+    private void onScheduleTimeChanged() {
+        if (ScheduleManager.isScheduleEnabled(this)) {
+            ScheduleManager.scheduleSleepAlarm(this);
+            ScheduleManager.scheduleWakeAlarm(this);
+            ScheduleManager.scheduleSleepReminderAlarm(this);
+        }
+        updateScheduleUI();
     }
 
     private void onScheduleSwitchChanged(boolean checked) {
