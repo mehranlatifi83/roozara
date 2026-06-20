@@ -1,7 +1,10 @@
 package ir.mehranlatifi83.salemzi.util;
 
 import android.content.Context;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.Gravity;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.NumberPicker;
 import android.widget.TextView;
@@ -14,7 +17,9 @@ import com.google.android.material.timepicker.TimeFormat;
 
 import ir.mehranlatifi83.salemzi.R;
 
+import java.lang.reflect.Field;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Time picker with two switchable modes:
@@ -146,14 +151,61 @@ public class TimePickerHelper {
         np.setValue(value);
         np.setWrapSelectorWheel(true);
         np.setFormatter(i -> String.format(Locale.getDefault(), "%02d", i));
-        // NumberPicker's built-in tap-to-type EditText only commits the value (and
-        // updates the faded prev/next rows) on focus loss or IME "done" — typing a
-        // digit otherwise leaves the wheel stale until Enter is pressed. Disabling
-        // descendant focus removes that broken text-edit path entirely, leaving pure
-        // scroll/fling and tap-to-increment, both of which update immediately.
-        np.setDescendantFocusability(NumberPicker.FOCUS_BLOCK_DESCENDANTS);
+        enableLiveTypedSync(np);
         np.invalidate();
         return np;
+    }
+
+    /**
+     * NumberPicker's built-in tap-to-type EditText only commits a typed digit (and
+     * updates the faded prev/next rows) on focus loss or the IME "done" action, so the
+     * wheel looks stale until Enter is pressed. There's no public API to change that,
+     * so reflection is used to reach the internal EditText and value field directly:
+     * every keystroke updates the picker's backing value and redraws the wheel, without
+     * touching the EditText's own text/cursor (which would otherwise fight the user's
+     * typing via the picker's zero-padding formatter).
+     */
+    private static void enableLiveTypedSync(NumberPicker picker) {
+        try {
+            Field inputField = NumberPicker.class.getDeclaredField("mInputText");
+            inputField.setAccessible(true);
+            EditText input = (EditText) inputField.get(picker);
+            if (input == null) return;
+
+            Field valueField = NumberPicker.class.getDeclaredField("mValue");
+            valueField.setAccessible(true);
+
+            // First digit typed replaces the current value instead of appending to it.
+            input.setSelectAllOnFocus(true);
+
+            AtomicBoolean selfUpdate = new AtomicBoolean(false);
+            input.addTextChangedListener(new TextWatcher() {
+                @Override public void beforeTextChanged(CharSequence s, int a, int b, int c) {}
+                @Override public void onTextChanged(CharSequence s, int a, int b, int c) {}
+                @Override public void afterTextChanged(Editable s) {
+                    if (selfUpdate.get()) return;
+                    String raw = s.toString();
+                    if (raw.isEmpty()) return;
+                    try {
+                        int typed = Integer.parseInt(raw);
+                        int clamped = Math.max(picker.getMinValue(),
+                                Math.min(picker.getMaxValue(), typed));
+                        valueField.set(picker, clamped);
+                        picker.invalidate();
+                        if (clamped != typed) {
+                            selfUpdate.set(true);
+                            String fixed = String.valueOf(clamped);
+                            input.setText(fixed);
+                            input.setSelection(fixed.length());
+                            selfUpdate.set(false);
+                        }
+                    } catch (NumberFormatException | IllegalAccessException ignored) {}
+                }
+            });
+        } catch (Exception ignored) {
+            // Reflection unavailable on this OEM/Android build — typing still works,
+            // it just commits on focus loss / IME "done" instead of live, as before.
+        }
     }
 
     /** Wraps a NumberPicker with a small caption below it so it's unambiguous which
