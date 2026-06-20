@@ -30,6 +30,7 @@ import com.google.android.material.materialswitch.MaterialSwitch;
 
 import ir.mehranlatifi83.salemzi.R;
 import ir.mehranlatifi83.salemzi.manager.ScheduleManager;
+import ir.mehranlatifi83.salemzi.manager.WaterReminderManager;
 import ir.mehranlatifi83.salemzi.service.WakeAlarmService;
 import ir.mehranlatifi83.salemzi.util.JalaliCalendar;
 import ir.mehranlatifi83.salemzi.util.TimePickerHelper;
@@ -187,6 +188,11 @@ public class MainActivity extends AppCompatActivity {
             ScheduleManager.scheduleSleepAlarm(this);
             ScheduleManager.scheduleWakeAlarm(this);
             ScheduleManager.scheduleSleepReminderAlarm(this);
+        }
+        // Water reminder windows are computed from the wake/sleep times, so a change
+        // here invalidates their already-scheduled alarms too.
+        if (WaterReminderManager.isEnabled(this)) {
+            WaterReminderManager.scheduleAll(this);
         }
         updateScheduleUI();
     }
