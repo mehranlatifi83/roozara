@@ -89,6 +89,7 @@ public class SleepLockActivity extends AppCompatActivity {
     private boolean exitCalled          = false;
     private boolean screenTurningOff    = false;
     private boolean wakeChallengeActive = false;
+    private boolean earlyExitButtonShown = false;
 
     // True while this activity is the visible foreground activity.
     private static boolean isInForeground = false;
@@ -145,7 +146,6 @@ public class SleepLockActivity extends AppCompatActivity {
             showWakeChallengeUI();
         } else {
             startCountdown();
-            scheduleEarlyExitUnlock();
         }
     }
 
@@ -180,7 +180,16 @@ public class SleepLockActivity extends AppCompatActivity {
         registerReceiver(screenOffReceiver, new IntentFilter(Intent.ACTION_SCREEN_OFF));
         handler.post(clockTick);
         hideSystemBars();
-        if (wakeChallengeActive) keepScreenOn();
+        if (wakeChallengeActive) {
+            keepScreenOn();
+        } else {
+            // Re-evaluate against the wall clock every time the screen/activity comes
+            // back to foreground. A Handler.postDelayed() scheduled while the device was
+            // in deep sleep can fire late (or effectively never, if the process was killed
+            // in the meantime), so the early-exit button could stay hidden even though the
+            // half-sleep-time threshold already passed. Recomputing here self-corrects.
+            scheduleEarlyExitUnlock();
+        }
     }
 
     @Override
@@ -340,7 +349,12 @@ public class SleepLockActivity extends AppCompatActivity {
 
     // ─── Early exit ──────────────────────────────────────────────────────────
 
+    private final Runnable earlyExitRunnable = this::showEarlyExitButton;
+
     private void scheduleEarlyExitUnlock() {
+        handler.removeCallbacks(earlyExitRunnable);
+        if (earlyExitButtonShown || exitCalled || wakeChallengeActive) return;
+
         long sleepStartMs = getSharedPreferences(PREFS, MODE_PRIVATE)
                 .getLong(KEY_SLEEP_START, 0);
         long now    = System.currentTimeMillis();
@@ -353,11 +367,12 @@ public class SleepLockActivity extends AppCompatActivity {
 
         long delay = (sleepStartMs + halfSleepMs) - now;
         if (delay <= 0) showEarlyExitButton();
-        else            handler.postDelayed(this::showEarlyExitButton, delay);
+        else            handler.postDelayed(earlyExitRunnable, delay);
     }
 
     private void showEarlyExitButton() {
-        if (exitCalled) return;
+        if (exitCalled || earlyExitButtonShown) return;
+        earlyExitButtonShown = true;
         dividerEarlyExit.setVisibility(View.VISIBLE);
         textEarlyExitHint.setVisibility(View.VISIBLE);
         btnEarlyExit.setVisibility(View.VISIBLE);
