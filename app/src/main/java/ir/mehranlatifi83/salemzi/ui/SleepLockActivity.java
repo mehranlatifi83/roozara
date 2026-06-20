@@ -2,10 +2,8 @@ package ir.mehranlatifi83.salemzi.ui;
 
 import android.app.AlertDialog;
 import android.app.NotificationManager;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -87,7 +85,6 @@ public class SleepLockActivity extends AppCompatActivity {
     private String  memorySequence;
     private int     wrongCount          = 0;
     private boolean exitCalled          = false;
-    private boolean screenTurningOff    = false;
     private boolean wakeChallengeActive = false;
     private boolean earlyExitButtonShown = false;
 
@@ -102,20 +99,22 @@ public class SleepLockActivity extends AppCompatActivity {
         @Override public void run() { updateClock(); handler.postDelayed(this, 1000); }
     };
 
-    private final BroadcastReceiver screenOffReceiver = new BroadcastReceiver() {
-        @Override public void onReceive(Context ctx, Intent intent) {
-            if (Intent.ACTION_SCREEN_OFF.equals(intent.getAction())) screenTurningOff = true;
+    // Delayed relaunch decision posted in onPause(). We check the actual screen power
+    // state via PowerManager rather than racing an ACTION_SCREEN_OFF broadcast against
+    // the activity lifecycle — that race was the cause of inconsistent behavior (the
+    // lock screen sometimes turning itself back on right after the user powered the
+    // screen off, or failing to come back when it should have).
+    private final Runnable relaunchIfNeeded = () -> {
+        if (!isDestroyed() && !isFinishing() && !exitCalled && isScreenOn()) {
+            SleepLockActivity.launch(SleepLockActivity.this);
         }
     };
 
-    // Delayed relaunch posted in onPause so ACTION_SCREEN_OFF can arrive first.
-    private final Runnable relaunchIfNeeded = () -> {
-        try { unregisterReceiver(screenOffReceiver); } catch (IllegalArgumentException ignored) {}
-        if (!isDestroyed() && !isFinishing() && !exitCalled && !screenTurningOff) {
-            SleepLockActivity.launch(SleepLockActivity.this);
-        }
-        screenTurningOff = false;
-    };
+    private boolean isScreenOn() {
+        android.os.PowerManager pm =
+                (android.os.PowerManager) getSystemService(Context.POWER_SERVICE);
+        return pm != null && pm.isInteractive();
+    }
 
     // ─── Entry point ─────────────────────────────────────────────────────────
 
@@ -175,9 +174,6 @@ public class SleepLockActivity extends AppCompatActivity {
         // Cancel any pending relaunch (e.g., we resumed before the 300 ms fired).
         isInForeground = true;
         handler.removeCallbacks(relaunchIfNeeded);
-        screenTurningOff = false;
-        try { unregisterReceiver(screenOffReceiver); } catch (IllegalArgumentException ignored) {}
-        registerReceiver(screenOffReceiver, new IntentFilter(Intent.ACTION_SCREEN_OFF));
         handler.post(clockTick);
         hideSystemBars();
         if (wakeChallengeActive) {
@@ -202,8 +198,9 @@ public class SleepLockActivity extends AppCompatActivity {
         if (wakeChallengeActive) {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
-        // Delay the relaunch decision by 300 ms so ACTION_SCREEN_OFF has time to set
-        // screenTurningOff before we decide whether to bring the lock screen back.
+        // Small debounce so a transient pause (e.g. a system dialog briefly stealing
+        // focus) doesn't immediately relaunch; the actual decision is based on the
+        // screen's power state at the time this runs, not on elapsed time.
         handler.postDelayed(relaunchIfNeeded, 300);
     }
 
@@ -230,7 +227,6 @@ public class SleepLockActivity extends AppCompatActivity {
         super.onDestroy();
         if (countDownTimer != null) countDownTimer.cancel();
         handler.removeCallbacksAndMessages(null);
-        try { unregisterReceiver(screenOffReceiver); } catch (IllegalArgumentException ignored) {}
     }
 
     // ─── Window ──────────────────────────────────────────────────────────────
