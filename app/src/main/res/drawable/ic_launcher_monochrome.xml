@@ -5,25 +5,24 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Roozara: a new day rising above a forward path. -->
     <path
-        android:fillColor="#FBBF24"
+        android:fillColor="#FFFFFFFF"
         android:pathData="M54,25 a13,13 0,1 0,0 26 a13,13 0,1 0,0 -26" />
 
     <path
-        android:strokeColor="#FDE68A"
+        android:strokeColor="#FFFFFFFF"
         android:strokeWidth="3"
         android:strokeLineCap="round"
         android:pathData="M54,18 L54,21 M36,25 L39,28 M72,25 L69,28 M29,40 L33,40 M79,40 L75,40" />
 
     <path
-        android:strokeColor="#818CF8"
+        android:strokeColor="#FFFFFFFF"
         android:strokeWidth="4"
         android:strokeLineCap="round"
         android:pathData="M29,63 C39,51 69,51 79,63" />
 
     <path
-        android:strokeColor="#4ADE80"
+        android:strokeColor="#FFFFFFFF"
         android:strokeWidth="7"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
