@@ -38,6 +38,14 @@
                     android:layout_height="wrap_content"/>
 
                 <TextView
+                    android:text="@string/app_tagline"
+                    android:textSize="12sp"
+                    android:textColor="@color/colorOnSurfaceVariant"
+                    android:layout_marginTop="2dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <TextView
                     android:id="@+id/text_date"
                     android:textSize="13sp"
                     android:textColor="@color/colorOnSurfaceVariant"

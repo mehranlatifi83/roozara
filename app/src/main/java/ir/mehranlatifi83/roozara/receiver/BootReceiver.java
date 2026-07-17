@@ -1,4 +1,4 @@
-package ir.mehranlatifi83.salemzi.receiver;
+package ir.mehranlatifi83.roozara.receiver;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -6,9 +6,9 @@ import android.content.Intent;
 
 import android.media.AudioManager;
 
-import ir.mehranlatifi83.salemzi.manager.ScheduleManager;
-import ir.mehranlatifi83.salemzi.manager.WaterReminderManager;
-import ir.mehranlatifi83.salemzi.service.SleepVpnService;
+import ir.mehranlatifi83.roozara.manager.ScheduleManager;
+import ir.mehranlatifi83.roozara.manager.WaterReminderManager;
+import ir.mehranlatifi83.roozara.service.SleepVpnService;
 
 public class BootReceiver extends BroadcastReceiver {
 
@@ -28,7 +28,7 @@ public class BootReceiver extends BroadcastReceiver {
                     .edit()
                     .putBoolean("sleep_active", false)
                     .putBoolean("wake_alarm_active", false)
-                    .remove(ir.mehranlatifi83.salemzi.ui.SleepLockActivity.KEY_SLEEP_START)
+                    .remove(ir.mehranlatifi83.roozara.ui.SleepLockActivity.KEY_SLEEP_START)
                     .apply();
         }
 

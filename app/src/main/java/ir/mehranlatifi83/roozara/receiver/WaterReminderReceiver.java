@@ -1,4 +1,4 @@
-package ir.mehranlatifi83.salemzi.receiver;
+package ir.mehranlatifi83.roozara.receiver;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -13,14 +13,14 @@ import androidx.core.app.NotificationCompat;
 
 import java.util.Calendar;
 
-import ir.mehranlatifi83.salemzi.R;
-import ir.mehranlatifi83.salemzi.manager.WaterReminderManager;
-import ir.mehranlatifi83.salemzi.ui.WaterActivity;
-import ir.mehranlatifi83.salemzi.ui.WaterOverlayActivity;
+import ir.mehranlatifi83.roozara.R;
+import ir.mehranlatifi83.roozara.manager.WaterReminderManager;
+import ir.mehranlatifi83.roozara.ui.WaterActivity;
+import ir.mehranlatifi83.roozara.ui.WaterOverlayActivity;
 
 public class WaterReminderReceiver extends BroadcastReceiver {
 
-    public  static final String ACTION_WATER = "ir.mehranlatifi83.salemzi.ACTION_WATER";
+    public  static final String ACTION_WATER = "ir.mehranlatifi83.roozara.ACTION_WATER";
     public  static final String EXTRA_SLOT   = "slot";
     public  static final String EXTRA_HOUR   = "hour";
     public  static final String EXTRA_MIN    = "min";

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">سالم‌زی</string>
+    <string name="app_name">روزآرا</string>
+    <string name="app_tagline">همه‌چیز برای یک روز بهتر</string>
     <string name="sleep_mode">حالت خواب</string>
     <string name="status_active">فعال</string>
     <string name="status_inactive">غیرفعال</string>
@@ -81,7 +82,7 @@
     <string name="overlay_off">غیرفعال</string>
     <string name="overlay_dialog_title">نمایش روی سایر برنامه‌ها</string>
     <string name="overlay_dialog_message">بدون این دسترسی، وقتی ساعت خواب میشه و گوشی روشنه و تو یه برنامه دیگه‌ای، فقط یه نوتیفیکیشن میاد و باید رو اون ضربه بزنی.\n\nبا دادن این دسترسی، صفحه قفل خواب مستقیماً روی هر برنامه‌ای که بازه میاد — بدون نیاز به ضربه زدن.</string>
-    <string name="dnd_onboarding_message">برنامه سالم‌زی برای حالت خواب نیاز داره که گوشی رو سایلنت کنه.\n\nلطفاً تو صفحه بعدی، کنار «سالم‌زی» رو فعال کن.</string>
+    <string name="dnd_onboarding_message">برنامه روزآرا برای حالت خواب نیاز داره که گوشی رو سایلنت کنه.\n\nلطفاً تو صفحه بعدی، کنار «روزآرا» رو فعال کن.</string>
     <string name="overlay_onboarding_message">برای اینکه صفحه قفل خواب مستقیماً روی هر اپی که داری استفاده می‌کنی بیاد — بدون نیاز به ضربه زدن روی اعلان — به این دسترسی نیاز داریم.\n\nاگه ندی، زنگ خواب فقط وقتی صفحه خاموشه مستقیم باز میشه.</string>
     <string name="later">بعداً</string>
 

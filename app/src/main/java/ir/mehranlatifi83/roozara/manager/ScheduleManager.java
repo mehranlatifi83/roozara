@@ -1,4 +1,4 @@
-package ir.mehranlatifi83.salemzi.manager;
+package ir.mehranlatifi83.roozara.manager;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -7,7 +7,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 
-import ir.mehranlatifi83.salemzi.receiver.SleepScheduleReceiver;
+import ir.mehranlatifi83.roozara.receiver.SleepScheduleReceiver;
 
 import java.util.Calendar;
 

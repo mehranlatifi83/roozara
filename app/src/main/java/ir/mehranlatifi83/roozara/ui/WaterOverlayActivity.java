@@ -1,4 +1,4 @@
-package ir.mehranlatifi83.salemzi.ui;
+package ir.mehranlatifi83.roozara.ui;
 
 import android.os.Build;
 import android.os.Bundle;
@@ -9,8 +9,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.button.MaterialButton;
 
-import ir.mehranlatifi83.salemzi.R;
-import ir.mehranlatifi83.salemzi.receiver.WaterReminderReceiver;
+import ir.mehranlatifi83.roozara.R;
+import ir.mehranlatifi83.roozara.receiver.WaterReminderReceiver;
 
 public class WaterOverlayActivity extends AppCompatActivity {
 

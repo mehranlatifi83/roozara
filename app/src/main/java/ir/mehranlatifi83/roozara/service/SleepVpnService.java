@@ -1,4 +1,4 @@
-package ir.mehranlatifi83.salemzi.service;
+package ir.mehranlatifi83.roozara.service;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -11,8 +11,8 @@ import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 
-import ir.mehranlatifi83.salemzi.R;
-import ir.mehranlatifi83.salemzi.ui.MainActivity;
+import ir.mehranlatifi83.roozara.R;
+import ir.mehranlatifi83.roozara.ui.MainActivity;
 
 import java.io.IOException;
 

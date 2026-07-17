@@ -1,4 +1,4 @@
-package ir.mehranlatifi83.salemzi.util;
+package ir.mehranlatifi83.roozara.util;
 
 import android.content.Context;
 import android.text.Editable;
@@ -15,7 +15,7 @@ import androidx.fragment.app.FragmentManager;
 import com.google.android.material.timepicker.MaterialTimePicker;
 import com.google.android.material.timepicker.TimeFormat;
 
-import ir.mehranlatifi83.salemzi.R;
+import ir.mehranlatifi83.roozara.R;
 
 import java.lang.reflect.Field;
 import java.util.Locale;

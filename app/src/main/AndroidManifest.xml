@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
@@ -19,7 +19,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Salemzi"
+        android:theme="@style/Theme.Roozara"
         android:localeConfig="@xml/locale_config"
         tools:targetApi="31">
 
@@ -37,7 +37,7 @@
             android:exported="false"
             android:showWhenLocked="true"
             android:turnScreenOn="true"
-            android:theme="@style/Theme.Salemzi"
+            android:theme="@style/Theme.Roozara"
             android:launchMode="singleTask"
             android:taskAffinity=".alarm" />
 
@@ -55,9 +55,9 @@
             android:name=".receiver.SleepScheduleReceiver"
             android:exported="false">
             <intent-filter>
-                <action android:name="ir.mehranlatifi83.salemzi.ACTION_SLEEP" />
-                <action android:name="ir.mehranlatifi83.salemzi.ACTION_WAKE" />
-                <action android:name="ir.mehranlatifi83.salemzi.ACTION_SLEEP_REMINDER" />
+                <action android:name="ir.mehranlatifi83.roozara.ACTION_SLEEP" />
+                <action android:name="ir.mehranlatifi83.roozara.ACTION_WAKE" />
+                <action android:name="ir.mehranlatifi83.roozara.ACTION_SLEEP_REMINDER" />
             </intent-filter>
         </receiver>
 
@@ -75,7 +75,7 @@
             android:exported="false"
             android:showWhenLocked="true"
             android:turnScreenOn="true"
-            android:theme="@style/Theme.Salemzi"
+            android:theme="@style/Theme.Roozara"
             android:launchMode="singleTop"
             android:excludeFromRecents="true" />
 
@@ -83,7 +83,7 @@
             android:name=".receiver.WaterReminderReceiver"
             android:exported="false">
             <intent-filter>
-                <action android:name="ir.mehranlatifi83.salemzi.ACTION_WATER" />
+                <action android:name="ir.mehranlatifi83.roozara.ACTION_WATER" />
             </intent-filter>
         </receiver>
 

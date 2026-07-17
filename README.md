@@ -1,8 +1,8 @@
 <p align="right"><a href="README.fa.md">فارسی</a></p>
 
-<h1 align="center">Salemzi — سالم‌زی</h1>
+<h1 align="center">Roozara — روزآرا</h1>
 
-<p align="center">Sleep on schedule. Wake up intentionally. Stay hydrated.</p>
+<p align="center">Everything for a better day.</p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Android-11%2B-3DDC84?logo=android&logoColor=white"/>
@@ -12,7 +12,7 @@
 
 ---
 
-Salemzi is an Android app for people who want to take their sleep seriously. It locks your phone at bedtime, silences it, and cuts off internet access — then makes you prove you're actually awake before the morning alarm stops. A water reminder system keeps hydration consistent throughout the day.
+Roozara is a private, on-device companion for building a better day. Its first set of tools focuses on healthier sleep and hydration: it can lock your phone at bedtime, silence it, cut off internet access, challenge you to wake up intentionally, and keep water reminders consistent throughout the day. More everyday planning and productivity tools can grow under the same roof.
 
 No accounts. No cloud. Everything stays on your device.
 
@@ -22,7 +22,7 @@ No accounts. No cloud. Everything stays on your device.
 
 ### Sleep Lock
 
-Set a bedtime and a wake time. When bedtime arrives, Salemzi activates automatically:
+Set a bedtime and a wake time. When bedtime arrives, Roozara activates automatically:
 
 - The phone goes silent and internet access is cut off
 - A lock screen takes over — the back button and volume keys are disabled
@@ -84,8 +84,8 @@ The app walks you through each permission on first launch.
 ## Building
 
 ```bash
-git clone https://github.com/mehranlatifi83/salemzi.git
-cd salemzi
+git clone https://github.com/mehranlatifi83/roozara.git
+cd roozara
 ```
 
 Open the project in **Android Studio Hedgehog (2023.1.1) or newer**, then run on a physical device or emulator with Android 11+.

@@ -1,4 +1,4 @@
-package ir.mehranlatifi83.salemzi.ui;
+package ir.mehranlatifi83.roozara.ui;
 
 import android.Manifest;
 import android.app.NotificationManager;
@@ -28,12 +28,12 @@ import androidx.core.os.LocaleListCompat;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.materialswitch.MaterialSwitch;
 
-import ir.mehranlatifi83.salemzi.R;
-import ir.mehranlatifi83.salemzi.manager.ScheduleManager;
-import ir.mehranlatifi83.salemzi.manager.WaterReminderManager;
-import ir.mehranlatifi83.salemzi.service.WakeAlarmService;
-import ir.mehranlatifi83.salemzi.util.JalaliCalendar;
-import ir.mehranlatifi83.salemzi.util.TimePickerHelper;
+import ir.mehranlatifi83.roozara.R;
+import ir.mehranlatifi83.roozara.manager.ScheduleManager;
+import ir.mehranlatifi83.roozara.manager.WaterReminderManager;
+import ir.mehranlatifi83.roozara.service.WakeAlarmService;
+import ir.mehranlatifi83.roozara.util.JalaliCalendar;
+import ir.mehranlatifi83.roozara.util.TimePickerHelper;
 
 import java.util.Calendar;
 import java.util.Locale;

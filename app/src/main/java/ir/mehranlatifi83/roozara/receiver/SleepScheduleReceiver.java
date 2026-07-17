@@ -1,4 +1,4 @@
-package ir.mehranlatifi83.salemzi.receiver;
+package ir.mehranlatifi83.roozara.receiver;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -12,18 +12,18 @@ import android.provider.Settings;
 
 import androidx.core.app.NotificationCompat;
 
-import ir.mehranlatifi83.salemzi.R;
-import ir.mehranlatifi83.salemzi.manager.ScheduleManager;
-import ir.mehranlatifi83.salemzi.service.SleepVpnService;
-import ir.mehranlatifi83.salemzi.service.WakeAlarmService;
-import ir.mehranlatifi83.salemzi.ui.MainActivity;
-import ir.mehranlatifi83.salemzi.ui.SleepLockActivity;
+import ir.mehranlatifi83.roozara.R;
+import ir.mehranlatifi83.roozara.manager.ScheduleManager;
+import ir.mehranlatifi83.roozara.service.SleepVpnService;
+import ir.mehranlatifi83.roozara.service.WakeAlarmService;
+import ir.mehranlatifi83.roozara.ui.MainActivity;
+import ir.mehranlatifi83.roozara.ui.SleepLockActivity;
 
 public class SleepScheduleReceiver extends BroadcastReceiver {
 
-    public static final String ACTION_SLEEP          = "ir.mehranlatifi83.salemzi.ACTION_SLEEP";
-    public static final String ACTION_WAKE           = "ir.mehranlatifi83.salemzi.ACTION_WAKE";
-    public static final String ACTION_SLEEP_REMINDER = "ir.mehranlatifi83.salemzi.ACTION_SLEEP_REMINDER";
+    public static final String ACTION_SLEEP          = "ir.mehranlatifi83.roozara.ACTION_SLEEP";
+    public static final String ACTION_WAKE           = "ir.mehranlatifi83.roozara.ACTION_WAKE";
+    public static final String ACTION_SLEEP_REMINDER = "ir.mehranlatifi83.roozara.ACTION_SLEEP_REMINDER";
 
     private static final String CHANNEL_ID  = "schedule_channel";
     private static final int    NOTIF_SLEEP = 2;
@@ -56,7 +56,7 @@ public class SleepScheduleReceiver extends BroadcastReceiver {
         ctx.getSharedPreferences("helth_prefs", Context.MODE_PRIVATE)
                 .edit()
                 .putBoolean("sleep_active", true)
-                .putLong(ir.mehranlatifi83.salemzi.ui.SleepLockActivity.KEY_SLEEP_START,
+                .putLong(ir.mehranlatifi83.roozara.ui.SleepLockActivity.KEY_SLEEP_START,
                         System.currentTimeMillis())
                 .apply();
 
