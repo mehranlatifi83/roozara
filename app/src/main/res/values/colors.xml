@@ -6,8 +6,8 @@
     <color name="colorBackground">#111827</color>
     <color name="colorSurface">#1F2937</color>
     <color name="colorOnSurface">#F1F5F9</color>
-    <color name="colorOnSurfaceVariant">#64748B</color>
-    <color name="colorDivider">#2D3748</color>
+    <color name="colorOnSurfaceVariant">#94A3B8</color>
+    <color name="colorDivider">#334155</color>
     <color name="colorSleepBackground">#080E1A</color>
     <color name="colorSleepText">#94A3B8</color>
     <color name="colorSleepSubtext">#64748B</color>

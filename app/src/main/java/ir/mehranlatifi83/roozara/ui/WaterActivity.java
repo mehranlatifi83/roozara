@@ -178,7 +178,7 @@ public class WaterActivity extends AppCompatActivity {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < slots.size(); i++) {
             int[] s = slots.get(i);
-            sb.append(String.format(Locale.getDefault(), "%02d:%02d", s[0], s[1]));
+            sb.append("•  ").append(String.format(Locale.getDefault(), "%02d:%02d", s[0], s[1]));
             if (i < slots.size() - 1) sb.append("\n");
         }
         textReminderList.setText(sb.toString());

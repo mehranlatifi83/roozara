@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@color/colorBackground"
+    android:fitsSystemWindows="true"
     >
 
     <LinearLayout
@@ -18,8 +19,8 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="44dp"
-            android:paddingBottom="8dp">
+            android:paddingTop="16dp"
+            android:paddingBottom="10dp">
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -51,7 +52,7 @@
                 android:layout_height="48dp"
                 android:layout_alignParentTop="true"
                 android:layout_alignParentEnd="true"
-                android:layout_marginTop="36dp"
+                android:layout_marginTop="8dp"
                 android:layout_marginEnd="4dp"
                 android:src="@drawable/ic_more_vert"
                 android:tint="@color/colorOnSurfaceVariant"
@@ -160,11 +161,12 @@
                             android:focusable="true"
                             android:background="?attr/selectableItemBackground">
 
-                            <TextView
-                                android:text="🌅"
-                                android:textSize="20sp"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
+                            <ImageView
+                                android:src="@drawable/ic_breakfast"
+                                android:tint="@color/colorPrimary"
+                                android:contentDescription="@string/meal_breakfast"
+                                android:layout_width="22dp"
+                                android:layout_height="22dp"
                                 android:layout_marginEnd="10dp"/>
 
                             <TextView
@@ -204,11 +206,12 @@
                             android:focusable="true"
                             android:background="?attr/selectableItemBackground">
 
-                            <TextView
-                                android:text="☀️"
-                                android:textSize="20sp"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
+                            <ImageView
+                                android:src="@drawable/ic_sun"
+                                android:tint="@color/colorPrimary"
+                                android:contentDescription="@string/meal_lunch"
+                                android:layout_width="22dp"
+                                android:layout_height="22dp"
                                 android:layout_marginEnd="10dp"/>
 
                             <TextView
@@ -248,11 +251,12 @@
                             android:focusable="true"
                             android:background="?attr/selectableItemBackground">
 
-                            <TextView
-                                android:text="🌙"
-                                android:textSize="20sp"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
+                            <ImageView
+                                android:src="@drawable/ic_moon"
+                                android:tint="@color/colorPrimary"
+                                android:contentDescription="@string/meal_dinner"
+                                android:layout_width="22dp"
+                                android:layout_height="22dp"
                                 android:layout_marginEnd="10dp"/>
 
                             <TextView
@@ -304,18 +308,20 @@
 
                         <TextView
                             android:text="@string/water_schedule_label"
-                            android:textSize="12sp"
+                            android:textSize="14sp"
+                            android:fontFamily="sans-serif-medium"
                             android:textColor="@color/colorOnSurfaceVariant"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"/>
 
                         <TextView
                             android:id="@+id/text_reminder_list"
-                            android:textSize="14sp"
+                            android:textSize="16sp"
                             android:textColor="@color/colorOnSurface"
-                            android:lineSpacingMultiplier="1.8"
-                            android:layout_marginTop="8dp"
-                            android:layout_width="wrap_content"
+                            android:fontFamily="sans-serif-medium"
+                            android:lineSpacingExtra="8dp"
+                            android:layout_marginTop="12dp"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"/>
 
                         <TextView

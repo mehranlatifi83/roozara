@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@color/colorBackground"
+    android:fitsSystemWindows="true"
     >
 
     <!-- Content -->
@@ -19,8 +20,8 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="44dp"
-            android:paddingBottom="12dp">
+            android:paddingTop="16dp"
+            android:paddingBottom="10dp">
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -60,7 +61,7 @@
                 android:layout_height="48dp"
                 android:layout_alignParentTop="true"
                 android:layout_alignParentEnd="true"
-                android:layout_marginTop="36dp"
+                android:layout_marginTop="8dp"
                 android:layout_marginEnd="4dp"
                 android:src="@drawable/ic_more_vert"
                 android:tint="@color/colorOnSurfaceVariant"
@@ -75,13 +76,16 @@
             android:layout_height="0dp"
             android:layout_weight="1"
             android:orientation="vertical"
-            android:gravity="center">
+            android:gravity="center_horizontal"
+            android:paddingBottom="12dp">
 
             <!-- Settings card -->
             <com.google.android.material.card.MaterialCardView
-                android:layout_width="280dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"
+                android:layout_marginTop="8dp"
                 app:cardBackgroundColor="@color/colorSurface"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="0dp"
@@ -110,7 +114,7 @@
 
                         <TextView
                             android:text="@string/overlay_label"
-                            android:textSize="13sp"
+                            android:textSize="14sp"
                             android:textColor="@color/colorOnSurfaceVariant"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -118,7 +122,7 @@
 
                         <TextView
                             android:id="@+id/text_overlay_status"
-                            android:textSize="13sp"
+                            android:textSize="14sp"
                             android:textColor="@color/colorPrimary"
                             android:fontFamily="sans-serif-medium"
                             android:layout_width="wrap_content"
@@ -148,7 +152,7 @@
 
                         <TextView
                             android:text="@string/sound_picker_label"
-                            android:textSize="13sp"
+                            android:textSize="14sp"
                             android:textColor="@color/colorOnSurfaceVariant"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -211,9 +215,11 @@
             <!-- Schedule Card -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/card_schedule"
-                android:layout_width="280dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"
+                android:layout_marginTop="12dp"
                 app:cardBackgroundColor="@color/colorSurface"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="0dp"
@@ -238,7 +244,8 @@
 
                         <TextView
                             android:text="@string/sleep_schedule_label"
-                            android:textSize="13sp"
+                            android:textSize="15sp"
+                            android:fontFamily="sans-serif-medium"
                             android:textColor="@color/colorOnSurfaceVariant"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -284,7 +291,7 @@
                             <TextView
                                 android:id="@+id/text_sleep_time"
                                 android:text="@string/schedule_not_set"
-                                android:textSize="20sp"
+                                android:textSize="24sp"
                                 android:textColor="@color/colorOnSurface"
                                 android:fontFamily="sans-serif-medium"
                                 android:layout_marginTop="6dp"
@@ -329,7 +336,7 @@
                             <TextView
                                 android:id="@+id/text_wake_time"
                                 android:text="@string/schedule_not_set"
-                                android:textSize="20sp"
+                                android:textSize="24sp"
                                 android:textColor="@color/colorOnSurface"
                                 android:fontFamily="sans-serif-medium"
                                 android:layout_marginTop="6dp"
@@ -353,7 +360,7 @@
                 android:text="@string/tap_to_set"
                 android:textSize="12sp"
                 android:textColor="@color/colorOnSurfaceVariant"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="8dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
 
