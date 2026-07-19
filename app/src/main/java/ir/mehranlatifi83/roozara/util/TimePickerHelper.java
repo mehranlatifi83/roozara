@@ -4,6 +4,7 @@ import android.content.Context;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Gravity;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.NumberPicker;
@@ -51,6 +52,10 @@ public class TimePickerHelper {
 
         LinearLayout pickersRow = new LinearLayout(ctx);
         pickersRow.setOrientation(LinearLayout.HORIZONTAL);
+        // Time notation has a fixed semantic order regardless of the app locale:
+        // hour on the left, minute on the right. Keep only this numeric row LTR;
+        // dialog titles, buttons, and translated labels retain the locale direction.
+        pickersRow.setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
         pickersRow.setGravity(Gravity.CENTER);
         pickersRow.setPadding(pad, dp(ctx, 8), pad, 0);
 
@@ -58,6 +63,8 @@ public class TimePickerHelper {
         NumberPicker npMin  = makeNumberPicker(ctx, 0, 59, initialMin);
 
         LinearLayout hourColumn = labeledColumn(ctx, npHour, R.string.picker_hour_label);
+        hourColumn.setLayoutParams(new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
 
         TextView colon = new TextView(ctx);
         colon.setText(":");
@@ -66,13 +73,15 @@ public class TimePickerHelper {
         colon.setGravity(Gravity.CENTER);
 
         LinearLayout minuteColumn = labeledColumn(ctx, npMin, R.string.picker_minute_label);
+        minuteColumn.setLayoutParams(new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
 
         pickersRow.addView(hourColumn);
         pickersRow.addView(colon);
         pickersRow.addView(minuteColumn);
 
         TextView toggleBtn = new TextView(ctx);
-        toggleBtn.setText("🕐  حالت ساعت دایره‌ای");
+        toggleBtn.setText(R.string.picker_clock_mode);
         toggleBtn.setTextSize(13);
         toggleBtn.setGravity(Gravity.CENTER);
         toggleBtn.setPadding(0, dp(ctx, 4), 0, dp(ctx, 12));

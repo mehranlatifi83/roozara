@@ -28,6 +28,7 @@
     <string name="picker_wake_title">Wake-up time</string>
     <string name="picker_hour_label">Hour</string>
     <string name="picker_minute_label">Minute</string>
+    <string name="picker_clock_mode">Clock face mode</string>
     <string name="schedule_active">Sleep schedule is active</string>
     <string name="schedule_inactive">Sleep schedule is inactive</string>
     <string name="tap_to_set">Tap to set</string>
