@@ -5,7 +5,7 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Roozara: a new day rising above a forward path. -->
+    <!-- Roozara: a new day and a clear path moving forward. -->
     <path
         android:fillColor="#FBBF24"
         android:pathData="M54,25 a13,13 0,1 0,0 26 a13,13 0,1 0,0 -26" />
@@ -17,16 +17,10 @@
         android:pathData="M54,18 L54,21 M36,25 L39,28 M72,25 L69,28 M29,40 L33,40 M79,40 L75,40" />
 
     <path
-        android:strokeColor="#818CF8"
-        android:strokeWidth="4"
-        android:strokeLineCap="round"
-        android:pathData="M29,63 C39,51 69,51 79,63" />
-
-    <path
         android:strokeColor="#4ADE80"
-        android:strokeWidth="7"
+        android:strokeWidth="6"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
-        android:pathData="M31,70 C40,65 46,72 53,81 C61,70 68,62 79,56" />
+        android:pathData="M30,78 C42,78 47,70 55,68 C64,66 69,57 78,49 M69,50 L78,49 L76,58" />
 </vector>
 
