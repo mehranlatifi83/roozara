@@ -33,6 +33,10 @@
         </activity>
 
         <activity
+            android:name=".ui.PermissionsActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".ui.SleepLockActivity"
             android:exported="false"
             android:showWhenLocked="true"
@@ -46,6 +50,9 @@
             android:foregroundServiceType="specialUse"
             android:permission="android.permission.BIND_VPN_SERVICE"
             android:exported="true">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="User-scheduled bedtime internet blocking VPN" />
             <intent-filter>
                 <action android:name="android.net.VpnService" />
             </intent-filter>
@@ -64,7 +71,11 @@
         <service
             android:name=".service.WakeAlarmService"
             android:foregroundServiceType="specialUse"
-            android:exported="false" />
+            android:exported="false">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="User-scheduled wake alarm playback" />
+        </service>
 
         <activity
             android:name=".ui.WaterActivity"
@@ -92,6 +103,10 @@
             android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
             </intent-filter>
         </receiver>
 

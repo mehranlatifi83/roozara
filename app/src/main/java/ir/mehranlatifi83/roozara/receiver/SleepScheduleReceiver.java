@@ -44,13 +44,14 @@ public class SleepScheduleReceiver extends BroadcastReceiver {
     }
 
     private void activateSleepMode(Context ctx) {
-        ((AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE))
-                .setRingerMode(AudioManager.RINGER_MODE_SILENT);
+        setRingerModeSafely(ctx, AudioManager.RINGER_MODE_SILENT);
 
         // Only start VPN if the user has already pre-authorized it (prepare returns null
         // when authorized). Without authorization, the tunnel silently fails to establish.
         if (android.net.VpnService.prepare(ctx) == null) {
             ctx.startForegroundService(new Intent(ctx, SleepVpnService.class));
+        } else {
+            showVpnPermissionMissingNotification(ctx);
         }
 
         ctx.getSharedPreferences("helth_prefs", Context.MODE_PRIVATE)
@@ -79,11 +80,9 @@ public class SleepScheduleReceiver extends BroadcastReceiver {
         boolean wasActive = ctx.getSharedPreferences("helth_prefs", Context.MODE_PRIVATE)
                 .getBoolean("sleep_active", false);
 
-        ((AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE))
-                .setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+        setRingerModeSafely(ctx, AudioManager.RINGER_MODE_NORMAL);
 
         ctx.stopService(new Intent(ctx, SleepVpnService.class));
-        SleepVpnService.disconnect();
 
         ctx.getSharedPreferences("helth_prefs", Context.MODE_PRIVATE)
                 .edit().putBoolean("sleep_active", false).apply();
@@ -93,6 +92,31 @@ public class SleepScheduleReceiver extends BroadcastReceiver {
         if (wasActive && !SleepLockActivity.isActivityInForeground()) {
             WakeAlarmService.start(ctx);
         }
+    }
+
+    private void setRingerModeSafely(Context ctx, int mode) {
+        try {
+            ((AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE)).setRingerMode(mode);
+        } catch (SecurityException ignored) {
+            // DND access may have been revoked after the schedule was enabled. The
+            // remaining bedtime actions must still run instead of aborting the receiver.
+        }
+    }
+
+    private void showVpnPermissionMissingNotification(Context ctx) {
+        ensureChannel(ctx);
+        PendingIntent openApp = PendingIntent.getActivity(ctx, 30,
+                new Intent(ctx, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        ctx.getSystemService(NotificationManager.class).notify(6,
+                new NotificationCompat.Builder(ctx, CHANNEL_ID)
+                        .setContentTitle(ctx.getString(R.string.vpn_permission_missing_title))
+                        .setContentText(ctx.getString(R.string.vpn_permission_missing_text))
+                        .setSmallIcon(R.drawable.ic_moon)
+                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                        .setContentIntent(openApp)
+                        .setAutoCancel(true)
+                        .build());
     }
 
     /** Posts a high-priority notification with a full-screen intent that opens the sleep lock

@@ -61,6 +61,14 @@ public class ScheduleManager {
         }
     }
 
+    /** Rebuilds all alarms after reboot, app update, clock/time-zone changes or permission grant. */
+    public static void rescheduleIfEnabled(Context ctx) {
+        if (!isScheduleEnabled(ctx) || !canScheduleExact(ctx)) return;
+        scheduleSleepAlarm(ctx);
+        scheduleWakeAlarm(ctx);
+        scheduleSleepReminderAlarm(ctx);
+    }
+
     public static void scheduleSleepAlarm(Context ctx) {
         int[] t = getSleepTime(ctx);
         if (t == null) return;
@@ -102,6 +110,19 @@ public class ScheduleManager {
         return getSleepTime(ctx) != null && getWakeTime(ctx) != null;
     }
 
+    /** True when the current local time is inside the configured bedtime window. */
+    public static boolean isInsideSleepWindow(Context ctx) {
+        int[] sleep = getSleepTime(ctx);
+        int[] wake = getWakeTime(ctx);
+        if (sleep == null || wake == null) return false;
+        Calendar now = Calendar.getInstance();
+        int current = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE);
+        int start = sleep[0] * 60 + sleep[1];
+        int end = wake[0] * 60 + wake[1];
+        return start < end ? current >= start && current < end
+                : current >= start || current < end;
+    }
+
     private static long nextTriggerMs(int hour, int min) {
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR_OF_DAY, hour);
@@ -116,6 +137,9 @@ public class ScheduleManager {
 
     private static void setAlarm(Context ctx, long triggerMs, String action, int reqCode) {
         AlarmManager am = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
+        // Exact-alarm access can be revoked at any time. Never crash a receiver or leave
+        // only part of the schedule installed when that happens.
+        if (!canScheduleExact(ctx)) return;
         am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerMs,
                 pendingIntent(ctx, action, reqCode));
     }

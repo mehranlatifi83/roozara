@@ -159,4 +159,27 @@
     <string name="water_reminder_text_6">Drink water before dinner — it helps control appetite.</string>
     <string name="water_reminder_title_7">💧 Last reminder</string>
     <string name="water_reminder_text_7">Last water for today — stay hydrated before bed.</string>
+    <string name="vpn_start_failed">Could not start internet blocking. Open Roozara and grant VPN access again.</string>
+    <string name="vpn_permission_missing_title">VPN access needs attention</string>
+    <string name="vpn_permission_missing_text">Roozara cannot block internet at bedtime until VPN access is granted again. Tap to fix it.</string>
+    <string name="menu_permissions">Permissions and access</string>
+    <string name="permissions_title">Permissions and access</string>
+    <string name="permissions_intro">Review the access Roozara uses. Tap any item to manage it.</string>
+    <string name="permission_granted">Granted</string>
+    <string name="permission_required">Required</string>
+    <string name="permission_recommended">Recommended</string>
+    <string name="permission_notifications">Notifications</string>
+    <string name="permission_notifications_desc">Sleep alarms, reminders and important errors</string>
+    <string name="permission_exact_alarm">Alarms and reminders</string>
+    <string name="permission_exact_alarm_desc">Run bedtime and wake-up actions at the selected time</string>
+    <string name="permission_vpn">VPN access</string>
+    <string name="permission_vpn_desc">Block IPv4 and IPv6 internet traffic during sleep</string>
+    <string name="permission_dnd">Do Not Disturb access</string>
+    <string name="permission_dnd_desc">Silence the phone when sleep mode begins</string>
+    <string name="permission_overlay">Display over other apps</string>
+    <string name="permission_overlay_desc">Open the sleep screen directly over the current app</string>
+    <string name="permission_fullscreen">Full-screen alarms</string>
+    <string name="permission_fullscreen_desc">Fallback display when overlay access is unavailable</string>
+    <string name="permission_battery">Unrestricted battery usage</string>
+    <string name="permission_battery_desc">Improves reliability on phones with aggressive battery management</string>
 </resources>

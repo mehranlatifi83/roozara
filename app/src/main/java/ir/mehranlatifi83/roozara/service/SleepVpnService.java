@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.net.VpnService;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
 
@@ -22,14 +23,18 @@ public class SleepVpnService extends VpnService {
     private static final String CHANNEL_ID = "sleep_vpn_channel";
     private static final int    NOTIF_ID   = 1;
 
-    // Held as a static field so disconnect() can close it from outside
+    // One active VPN interface per app process; other bedtime components may close it.
     private static ParcelFileDescriptor vpnInterface;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         createNotificationChannel();
         startForeground(NOTIF_ID, buildNotification());
-        establishVpnTunnel();
+        if (!establishVpnTunnel()) {
+            Toast.makeText(this, R.string.vpn_start_failed, Toast.LENGTH_LONG).show();
+            stopSelf();
+            return START_NOT_STICKY;
+        }
         return START_STICKY;
     }
 
@@ -40,7 +45,7 @@ public class SleepVpnService extends VpnService {
     }
 
     /** Closes the VPN tunnel. Safe to call from any thread or context. */
-    public static void disconnect() {
+    public static synchronized void disconnect() {
         if (vpnInterface != null) {
             try {
                 vpnInterface.close();
@@ -52,17 +57,22 @@ public class SleepVpnService extends VpnService {
         }
     }
 
-    private void establishVpnTunnel() {
-        if (vpnInterface != null) return;
+    private boolean establishVpnTunnel() {
+        if (vpnInterface != null) return true;
         try {
             vpnInterface = new Builder()
-                    .setSession("HelthSleepVPN")
+                    .setSession(getString(R.string.app_name))
                     .addAddress("10.0.0.2", 32)
                     .addRoute("0.0.0.0", 0)
+                    // Modern mobile networks commonly prefer IPv6. Without this route,
+                    // IPv6 traffic can bypass an IPv4-only blocking tunnel.
+                    .addAddress("fd00::2", 128)
+                    .addRoute("::", 0)
                     .establish();
+            return vpnInterface != null;
         } catch (Exception e) {
             Log.e(TAG, "Failed to establish VPN tunnel", e);
-            stopSelf();
+            return false;
         }
     }
 

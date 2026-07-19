@@ -159,4 +159,27 @@
     <string name="water_reminder_text_6">قبل از شام یه لیوان آب بخور — اشتها رو کنترل می‌کنه.</string>
     <string name="water_reminder_title_7">💧 آخرین یادآور</string>
     <string name="water_reminder_text_7">آخرین وعده آب امروز — قبل از خواب هیدراته بمون.</string>
+    <string name="vpn_start_failed">قطع اینترنت فعال نشد. روزآرا را باز کنید و مجوز VPN را دوباره بدهید.</string>
+    <string name="vpn_permission_missing_title">مجوز VPN نیاز به بررسی دارد</string>
+    <string name="vpn_permission_missing_text">تا وقتی مجوز VPN دوباره داده نشود، روزآرا نمی‌تواند اینترنت را هنگام خواب قطع کند. برای رفع مشکل لمس کنید.</string>
+    <string name="menu_permissions">مجوزها و دسترسی‌ها</string>
+    <string name="permissions_title">مجوزها و دسترسی‌ها</string>
+    <string name="permissions_intro">دسترسی‌های مورد استفادهٔ روزآرا را اینجا بررسی کنید. برای مدیریت هر مورد، آن را لمس کنید.</string>
+    <string name="permission_granted">فعال</string>
+    <string name="permission_required">ضروری</string>
+    <string name="permission_recommended">پیشنهادی</string>
+    <string name="permission_notifications">اعلان‌ها</string>
+    <string name="permission_notifications_desc">آلارم خواب، یادآورها و خطاهای مهم</string>
+    <string name="permission_exact_alarm">آلارم‌ها و یادآورها</string>
+    <string name="permission_exact_alarm_desc">اجرای عملکرد خواب و بیداری دقیقاً در زمان انتخاب‌شده</string>
+    <string name="permission_vpn">دسترسی VPN</string>
+    <string name="permission_vpn_desc">قطع ترافیک IPv4 و IPv6 هنگام خواب</string>
+    <string name="permission_dnd">دسترسی مزاحم نشوید</string>
+    <string name="permission_dnd_desc">بی‌صدا کردن گوشی هنگام شروع حالت خواب</string>
+    <string name="permission_overlay">نمایش روی برنامه‌های دیگر</string>
+    <string name="permission_overlay_desc">باز کردن مستقیم صفحهٔ خواب روی برنامهٔ در حال استفاده</string>
+    <string name="permission_fullscreen">آلارم تمام‌صفحه</string>
+    <string name="permission_fullscreen_desc">روش جایگزین نمایش وقتی دسترسی نمایش روی برنامه‌ها فعال نیست</string>
+    <string name="permission_battery">مصرف باتری بدون محدودیت</string>
+    <string name="permission_battery_desc">افزایش پایداری در گوشی‌هایی با مدیریت باتری سخت‌گیرانه</string>
 </resources>

@@ -31,6 +31,7 @@ import com.google.android.material.materialswitch.MaterialSwitch;
 import ir.mehranlatifi83.roozara.R;
 import ir.mehranlatifi83.roozara.manager.ScheduleManager;
 import ir.mehranlatifi83.roozara.manager.WaterReminderManager;
+import ir.mehranlatifi83.roozara.receiver.SleepScheduleReceiver;
 import ir.mehranlatifi83.roozara.service.WakeAlarmService;
 import ir.mehranlatifi83.roozara.util.JalaliCalendar;
 import ir.mehranlatifi83.roozara.util.TimePickerHelper;
@@ -56,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView       textSoundName;
 
     private boolean pendingScheduleEnable = false;
+    private boolean requirementsWarningShown = false;
 
     private final ActivityResultLauncher<Intent> vpnLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -113,6 +115,7 @@ public class MainActivity extends AppCompatActivity {
         updateScheduleUI();
         updateOverlayUI();
         checkOnboarding();
+        verifyEnabledScheduleRequirements();
     }
 
     // ─── View wiring ─────────────────────────────────────────────────────────
@@ -208,6 +211,12 @@ public class MainActivity extends AppCompatActivity {
             showAlarmPermissionDialog();
             return;
         }
+        if (checked && !getSystemService(NotificationManager.class)
+                .isNotificationPolicyAccessGranted()) {
+            switchSchedule.setChecked(false);
+            showDndPermissionDialog();
+            return;
+        }
         if (checked) {
             // Pre-authorize VPN so it works when the schedule fires automatically at night.
             Intent vpnIntent = VpnService.prepare(this);
@@ -219,6 +228,36 @@ public class MainActivity extends AppCompatActivity {
         }
         ScheduleManager.setScheduleEnabled(this, checked);
         updateScheduleUI();
+    }
+
+    private void verifyEnabledScheduleRequirements() {
+        if (!ScheduleManager.isScheduleEnabled(this)) return;
+        if (ScheduleManager.canScheduleExact(this)) {
+            // Repairs alarms after an app update or if an OEM cleared pending alarms.
+            ScheduleManager.rescheduleIfEnabled(this);
+        }
+        if (ScheduleManager.isInsideSleepWindow(this)
+                && !getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                        .getBoolean("sleep_active", false)) {
+            sendBroadcast(new Intent(this, SleepScheduleReceiver.class)
+                    .setAction(SleepScheduleReceiver.ACTION_SLEEP));
+        }
+        if (requirementsWarningShown) return;
+        if (!ScheduleManager.canScheduleExact(this)) {
+            requirementsWarningShown = true;
+            showAlarmPermissionDialog();
+        } else if (VpnService.prepare(this) != null) {
+            requirementsWarningShown = true;
+            new AlertDialog.Builder(this)
+                    .setTitle(R.string.vpn_permission_missing_title)
+                    .setMessage(R.string.vpn_permission_missing_text)
+                    .setPositiveButton(R.string.go_to_settings, (d, w) -> {
+                        pendingScheduleEnable = true;
+                        vpnLauncher.launch(VpnService.prepare(this));
+                    })
+                    .setNegativeButton(R.string.later, null)
+                    .show();
+        }
     }
 
     // ─── UI state ────────────────────────────────────────────────────────────
@@ -341,12 +380,14 @@ public class MainActivity extends AppCompatActivity {
         PopupMenu popup = new PopupMenu(this, anchor, Gravity.END);
         popup.getMenu().add(0, 1, 0, getString(R.string.menu_language));
         popup.getMenu().add(0, 2, 1, getString(R.string.menu_calendar));
-        popup.getMenu().add(0, 3, 2, getString(R.string.menu_guide));
-        popup.getMenu().add(0, 4, 3, getString(R.string.menu_privacy));
+        popup.getMenu().add(0, 5, 2, getString(R.string.menu_permissions));
+        popup.getMenu().add(0, 3, 3, getString(R.string.menu_guide));
+        popup.getMenu().add(0, 4, 4, getString(R.string.menu_privacy));
         popup.setOnMenuItemClickListener(item -> {
             switch (item.getItemId()) {
                 case 1: showLanguagePicker(); return true;
                 case 2: showCalendarPicker(); return true;
+                case 5: startActivity(new Intent(this, PermissionsActivity.class)); return true;
                 case 3: showGuide();          return true;
                 case 4: showPrivacyPolicy();  return true;
             }
