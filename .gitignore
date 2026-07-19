@@ -9,6 +9,7 @@ local.properties
 .externalNativeBuild
 .cxx
 .claude/
+IRANYekanX Pro/
 
 # Build artifacts
 app/release/

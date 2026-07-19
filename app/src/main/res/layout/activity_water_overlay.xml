@@ -36,7 +36,7 @@
                 android:id="@+id/text_overlay_title"
                 android:textSize="22sp"
                 android:textColor="@color/colorOnSurface"
-                android:fontFamily="sans-serif-medium"
+                android:fontFamily="@font/iranyekanx_demibold"
                 android:gravity="center"
                 android:layout_marginTop="16dp"
                 android:layout_width="wrap_content"

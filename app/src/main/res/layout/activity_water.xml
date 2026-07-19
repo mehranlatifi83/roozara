@@ -33,7 +33,7 @@
                     android:text="@string/nav_water"
                     android:textSize="28sp"
                     android:textColor="@color/colorOnSurface"
-                    android:fontFamily="sans-serif-medium"
+                    android:fontFamily="@font/iranyekanx_demibold"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
 
@@ -181,7 +181,7 @@
                                 android:id="@+id/text_breakfast_time"
                                 android:textSize="15sp"
                                 android:textColor="@color/colorPrimary"
-                                android:fontFamily="sans-serif-medium"
+                                android:fontFamily="@font/iranyekanx_demibold"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"/>
                         </LinearLayout>
@@ -226,7 +226,7 @@
                                 android:id="@+id/text_lunch_time"
                                 android:textSize="15sp"
                                 android:textColor="@color/colorPrimary"
-                                android:fontFamily="sans-serif-medium"
+                                android:fontFamily="@font/iranyekanx_demibold"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"/>
                         </LinearLayout>
@@ -271,7 +271,7 @@
                                 android:id="@+id/text_dinner_time"
                                 android:textSize="15sp"
                                 android:textColor="@color/colorPrimary"
-                                android:fontFamily="sans-serif-medium"
+                                android:fontFamily="@font/iranyekanx_demibold"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"/>
                         </LinearLayout>
@@ -309,7 +309,7 @@
                         <TextView
                             android:text="@string/water_schedule_label"
                             android:textSize="14sp"
-                            android:fontFamily="sans-serif-medium"
+                            android:fontFamily="@font/iranyekanx_demibold"
                             android:textColor="@color/colorOnSurfaceVariant"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"/>
@@ -318,7 +318,7 @@
                             android:id="@+id/text_reminder_list"
                             android:textSize="16sp"
                             android:textColor="@color/colorOnSurface"
-                            android:fontFamily="sans-serif-medium"
+                            android:fontFamily="@font/iranyekanx_demibold"
                             android:lineSpacingExtra="8dp"
                             android:layout_marginTop="12dp"
                             android:layout_width="match_parent"
