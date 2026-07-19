@@ -25,6 +25,7 @@
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/back"
                 android:gravity="center"
                 android:text="‹"
                 android:textColor="@color/colorOnSurface"

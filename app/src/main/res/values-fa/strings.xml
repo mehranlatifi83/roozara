@@ -182,4 +182,5 @@
     <string name="permission_fullscreen_desc">روش جایگزین نمایش وقتی دسترسی نمایش روی برنامه‌ها فعال نیست</string>
     <string name="permission_battery">مصرف باتری بدون محدودیت</string>
     <string name="permission_battery_desc">افزایش پایداری در گوشی‌هایی با مدیریت باتری سخت‌گیرانه</string>
+    <string name="back">بازگشت</string>
 </resources>

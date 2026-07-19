@@ -182,4 +182,5 @@
     <string name="permission_fullscreen_desc">Fallback display when overlay access is unavailable</string>
     <string name="permission_battery">Unrestricted battery usage</string>
     <string name="permission_battery_desc">Improves reliability on phones with aggressive battery management</string>
+    <string name="back">Back</string>
 </resources>
