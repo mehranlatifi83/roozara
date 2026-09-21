@@ -59,6 +59,12 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
+        // Stated rather than inherited. Several source files hold Persian text, and the
+        // platform default charset on the Windows machine this is built on is cp1256 —
+        // so the build only produced correct strings because the JDK happens to default
+        // to UTF-8 and gradle.properties happens to pass -Dfile.encoding. Either of
+        // those changing would mangle every Persian literal with no error.
+        encoding 'UTF-8'
     }
 }
 

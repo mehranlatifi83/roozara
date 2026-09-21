@@ -1,0 +1,41 @@
+# Line endings, decided by the repository rather than by each machine's git config.
+#
+# Everything here is currently stored with LF, which is what we want, but that was
+# only true because the Windows machine it is developed on happens to have
+# core.autocrlf=true. A contributor without that setting would commit CRLF, and
+# gradlew with CRLF fails on Linux and macOS with "bad interpreter" — which is a
+# broken build for everyone except the person who committed it.
+
+# Normalise every text file to LF in the repository. Git still checks files out
+# with the platform's own endings on Windows.
+* text=auto eol=lf
+
+# Must stay LF even in the working copy: it is run by sh.
+gradlew text eol=lf
+
+# Windows-only scripts, which cmd.exe wants with CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Never touched. Listed explicitly rather than left to Git's binary heuristic,
+# because a font or an icon rewritten as text is corrupted silently.
+*.ttf   binary
+*.otf   binary
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.webp  binary
+*.gif   binary
+*.ico   binary
+*.jar   binary
+*.aar   binary
+*.apk   binary
+*.aab   binary
+*.keystore binary
+*.jks   binary
+
+# Source is UTF-8. Several files hold Persian text, and the default charset on a
+# Windows machine in this region is cp1256, not UTF-8.
+*.java  text working-tree-encoding=UTF-8
+*.xml   text working-tree-encoding=UTF-8
+*.html  text working-tree-encoding=UTF-8
