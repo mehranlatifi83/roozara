@@ -18,8 +18,39 @@ android {
     buildTypes {
         release {
             minifyEnabled true
+            // Resource shrinking needs code shrinking to tell it what is reachable. It
+            // was off while minification was on, so the code got smaller every build and
+            // the resources never did.
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+    }
+
+    androidResources {
+        // The app ships in two languages. Without this the APK also carries every
+        // translation that AppCompat and Material bring with them — around eighty
+        // locales — which was the single largest thing in it, bigger than all the code.
+        localeFilters += ['en', 'fa']
+    }
+
+    packaging {
+        resources {
+            // Kotlin metadata for libraries this app only calls from Java. Nothing reads
+            // it at runtime.
+            excludes += [
+                    'kotlin/**',
+                    'META-INF/*.version',
+                    'META-INF/*.kotlin_module',
+                    'DebugProbesKt.bin',
+            ]
+        }
+    }
+
+    // The dependency block Play uses for vulnerability scanning. It is signed metadata
+    // that nothing on the device reads, and it is not wanted in a locally built APK.
+    dependenciesInfo {
+        includeInApk false
+        includeInBundle false
     }
     lint {
         checkReleaseBuilds false
@@ -34,7 +65,6 @@ android {
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'com.google.android.material:material:1.12.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
