@@ -2,8 +2,8 @@ package ir.mehranlatifi83.roozara.ui;
 
 import android.content.Context;
 import android.graphics.PixelFormat;
-import android.os.Build;
 import android.provider.Settings;
+import android.view.ContextThemeWrapper;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.WindowManager;
 
 import ir.mehranlatifi83.roozara.R;
+import ir.mehranlatifi83.roozara.util.ActivityLog;
 
 /**
  * A full-screen overlay that covers whatever is behind the sleep lock screen.
@@ -41,12 +42,20 @@ public final class SleepOverlayGuard {
 
     private static final String TAG = "SleepOverlayGuard";
 
+    /**
+     * Held statically on purpose: the cover has to outlive the activity that raised it.
+     *
+     * That is exactly what it is for — it goes up as the lock activity is pushed aside
+     * and comes down when it is back. It is inflated from the application context below
+     * so that holding it here keeps no activity alive.
+     */
+    @android.annotation.SuppressLint("StaticFieldLeak")
     private static View overlayView;
 
     private SleepOverlayGuard() {}
 
     public static boolean isAvailable(Context ctx) {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && Settings.canDrawOverlays(ctx);
+        return Settings.canDrawOverlays(ctx);
     }
 
     public static boolean isShowing() {
@@ -76,16 +85,26 @@ public final class SleepOverlayGuard {
         params.gravity = Gravity.TOP | Gravity.START;
 
         try {
-            View view = LayoutInflater.from(ctx).inflate(R.layout.overlay_sleep_guard, null);
+            // Inflated from the application context, wrapped in the app theme so the
+            // cover still uses the right colours. Inflating from the calling activity
+            // left this static field holding that activity for the rest of the night.
+            Context themed = new ContextThemeWrapper(
+                    ctx.getApplicationContext(), R.style.Theme_Roozara);
+            View view = LayoutInflater.from(themed).inflate(R.layout.overlay_sleep_guard, null);
+            Context appCtx = ctx.getApplicationContext();
             // Tapping anywhere goes straight back to the lock screen, so someone who
             // ends up here is never stuck looking at a blank cover.
-            view.setOnClickListener(v -> SleepLockActivity.launch(ctx));
+            view.setOnClickListener(v -> SleepLockActivity.launch(appCtx));
             wm.addView(view, params);
             overlayView = view;
         } catch (Exception e) {
             // Overlay access can be revoked while the app runs, and some ROMs refuse the
-            // window even with it granted. Bedtime must carry on either way.
+            // window even with it granted. Bedtime must carry on either way — but this is
+            // exactly why "the lock screen did not cover anything" happens, so it belongs
+            // in the file the user can share rather than only in logcat.
             Log.w(TAG, "Could not show the sleep overlay", e);
+            ActivityLog.log(ctx, "sleep overlay could NOT be shown",
+                    "error=" + e.getClass().getSimpleName());
             overlayView = null;
         }
     }

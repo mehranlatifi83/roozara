@@ -35,10 +35,9 @@ import ir.mehranlatifi83.roozara.util.ActivityLog;
 import ir.mehranlatifi83.roozara.manager.WaterReminderManager;
 import ir.mehranlatifi83.roozara.receiver.SleepScheduleReceiver;
 import ir.mehranlatifi83.roozara.service.WakeAlarmService;
-import ir.mehranlatifi83.roozara.util.JalaliCalendar;
+import ir.mehranlatifi83.roozara.util.DateLabel;
 import ir.mehranlatifi83.roozara.util.TimePickerHelper;
 
-import java.util.Calendar;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
@@ -48,7 +47,6 @@ public class MainActivity extends AppCompatActivity {
     private static final String KEY_OB_OVERLAY_SHOWN = "onboarding_overlay_shown";
     private static final String KEY_PRIVACY_ACCEPTED = "privacy_policy_accepted";
     private static final String KEY_GUIDE_SHOWN      = "guide_shown";
-    private static final String KEY_USE_JALALI       = "use_jalali_calendar";
 
     private TextView       textSleepTime;
     private TextView       textWakeTime;
@@ -64,15 +62,18 @@ public class MainActivity extends AppCompatActivity {
     private final ActivityResultLauncher<Intent> vpnLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
-                if (result.getResultCode() == RESULT_OK) {
-                    if (pendingScheduleEnable) {
-                        pendingScheduleEnable = false;
-                        ScheduleManager.setScheduleEnabled(this, true);
-                        updateScheduleUI();
-                    }
-                } else {
-                    pendingScheduleEnable = false;
+                boolean wasEnabling = pendingScheduleEnable;
+                pendingScheduleEnable = false;
+                if (result.getResultCode() == RESULT_OK && wasEnabling) {
+                    ScheduleManager.setScheduleEnabled(this, true);
+                    SleepModeController.clearCycleLeftEarly(this);
+                    // Consent granted after bedtime has to start tonight, not wait for
+                    // tomorrow's alarm. This is the same path the switch takes.
+                    startTonightIfInsideWindow("vpn_consent_granted");
                 }
+                // Redrawn either way: when consent is refused the switch is still showing
+                // the position the user dragged it to, with no schedule behind it.
+                updateScheduleUI();
             });
 
     private final ActivityResultLauncher<Intent> ringtoneLauncher = registerForActivityResult(
@@ -238,9 +239,40 @@ public class MainActivity extends AppCompatActivity {
             SleepModeController.releaseSystemState(this, "schedule_switched_off");
             WakeAlarmService.stop(this);
             SleepOverlayGuard.hide(this);
+            // Switching off is an explicit decision to end tonight. Without this, the
+            // screen-on and resume checks saw an enabled-looking window again the moment
+            // the switch went back on and restarted the night that was just ended.
+            SleepModeController.markCycleLeftEarly(this);
+        }
+
+        if (checked) {
+            // Bedtime may already have passed. setScheduleEnabled only installs
+            // tomorrow's alarms, so without this the night did not begin until something
+            // else happened to re-run the resume check — which is why switching the
+            // schedule on after bedtime appeared to do nothing until the app was left
+            // and reopened.
+            SleepModeController.clearCycleLeftEarly(this);
+            startTonightIfInsideWindow("schedule_switched_on");
         }
 
         updateScheduleUI();
+    }
+
+    /**
+     * Starts the night immediately when the current time is already inside the window.
+     *
+     * Shared by the switch and by onResume so both behave identically. The early-exit
+     * check is what stops a night the user has already earned their way out of being
+     * restarted: leaving early clears "sleep active", and without this, simply opening
+     * the app put the lock screen straight back up.
+     */
+    private void startTonightIfInsideWindow(String reason) {
+        if (!ScheduleManager.isScheduleEnabled(this)) return;
+        if (!ScheduleManager.isInsideSleepWindow(this)) return;
+        if (SleepModeController.isSleepActive(this)) return;
+        if (SleepModeController.wasCycleLeftEarly(this)) return;
+
+        SleepScheduleReceiver.activateSleepMode(this, reason);
     }
 
     private void verifyEnabledScheduleRequirements() {
@@ -249,15 +281,7 @@ public class MainActivity extends AppCompatActivity {
             // Repairs alarms after an app update or if an OEM cleared pending alarms.
             ScheduleManager.rescheduleIfEnabled(this);
         }
-        // The early-exit check is what stops the app restarting a night the user has
-        // already earned their way out of: leaving early clears "sleep active", and
-        // without this, simply opening the app put the lock screen straight back up.
-        if (ScheduleManager.isInsideSleepWindow(this)
-                && !SleepModeController.isSleepActive(this)
-                && !SleepModeController.wasCycleLeftEarly(this)) {
-            sendBroadcast(new Intent(this, SleepScheduleReceiver.class)
-                    .setAction(SleepScheduleReceiver.ACTION_SLEEP));
-        }
+        startTonightIfInsideWindow("app_resumed");
         if (requirementsWarningShown) return;
         if (!ScheduleManager.canScheduleExact(this)) {
             requirementsWarningShown = true;
@@ -486,9 +510,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showCalendarPicker() {
-        SharedPreferences prefs = getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-        boolean useJalali = prefs.getBoolean(KEY_USE_JALALI,
-                "fa".equals(Locale.getDefault().getLanguage()));
+        boolean useJalali = DateLabel.useJalali(this);
 
         String[] labels = { getString(R.string.calendar_jalali), getString(R.string.calendar_gregorian) };
         int checked = useJalali ? 0 : 1;
@@ -496,7 +518,7 @@ public class MainActivity extends AppCompatActivity {
         new AlertDialog.Builder(this)
                 .setTitle(R.string.calendar_title)
                 .setSingleChoiceItems(labels, checked, (d, which) -> {
-                    prefs.edit().putBoolean(KEY_USE_JALALI, which == 0).apply();
+                    DateLabel.setUseJalali(this, which == 0);
                     ((TextView) findViewById(R.id.text_date)).setText(buildLocalizedDate());
                     d.dismiss();
                 })
@@ -519,7 +541,7 @@ public class MainActivity extends AppCompatActivity {
         boolean dndHandled = nm.isNotificationPolicyAccessGranted()
                 || prefs.getBoolean(KEY_OB_DND_SHOWN, false);
         if (dndHandled
-                && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+
                 && !Settings.canDrawOverlays(this)
                 && !prefs.getBoolean(KEY_OB_OVERLAY_SHOWN, false)) {
             prefs.edit().putBoolean(KEY_OB_OVERLAY_SHOWN, true).apply();
@@ -562,8 +584,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateOverlayUI() {
-        boolean granted = Build.VERSION.SDK_INT < Build.VERSION_CODES.M
-                || Settings.canDrawOverlays(this);
+        boolean granted = Settings.canDrawOverlays(this);
         textOverlayStatus.setText(granted ? R.string.overlay_on : R.string.overlay_off);
     }
 
@@ -686,23 +707,6 @@ public class MainActivity extends AppCompatActivity {
     // ─── Date ────────────────────────────────────────────────────────────────
 
     private String buildLocalizedDate() {
-        Calendar cal = Calendar.getInstance();
-        boolean useJalali = getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                .getBoolean(KEY_USE_JALALI, "fa".equals(Locale.getDefault().getLanguage()));
-        if (useJalali) {
-            String[] days   = {"یکشنبه","دوشنبه","سه‌شنبه","چهارشنبه","پنجشنبه","جمعه","شنبه"};
-            String[] months = {"فروردین","اردیبهشت","خرداد","تیر","مرداد","شهریور",
-                               "مهر","آبان","آذر","دی","بهمن","اسفند"};
-            int[] j = JalaliCalendar.toJalali(
-                    cal.get(Calendar.YEAR),
-                    cal.get(Calendar.MONTH) + 1,
-                    cal.get(Calendar.DAY_OF_MONTH));
-            return days[cal.get(Calendar.DAY_OF_WEEK) - 1]
-                    + "،  " + j[2] + " " + months[j[1] - 1] + " " + j[0];
-        }
-        return cal.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, java.util.Locale.getDefault())
-                + ",  "
-                + cal.getDisplayName(Calendar.MONTH, Calendar.LONG, java.util.Locale.getDefault())
-                + " " + cal.get(Calendar.DAY_OF_MONTH) + ", " + cal.get(Calendar.YEAR);
+        return DateLabel.today(this, true, true);
     }
 }

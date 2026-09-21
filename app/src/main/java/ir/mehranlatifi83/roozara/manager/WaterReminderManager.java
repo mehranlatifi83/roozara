@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 
+import ir.mehranlatifi83.roozara.R;
 import ir.mehranlatifi83.roozara.receiver.WaterReminderReceiver;
 
 import java.util.ArrayList;
@@ -36,6 +37,32 @@ public class WaterReminderManager {
     private static final String PREFS          = "helth_prefs";
     private static final int    REQ_BASE       = 200;
     public  static final int    COUNT          = 8;
+
+    /**
+     * Title and body for each reminder slot.
+     *
+     * Held here because both the popup and the notification show the same message, and
+     * they each used to carry their own copy of these sixteen ids — two lists that had
+     * to stay in step with nothing to make them.
+     */
+    public static final int[] TITLES = {
+            R.string.water_reminder_title_0, R.string.water_reminder_title_1,
+            R.string.water_reminder_title_2, R.string.water_reminder_title_3,
+            R.string.water_reminder_title_4, R.string.water_reminder_title_5,
+            R.string.water_reminder_title_6, R.string.water_reminder_title_7,
+    };
+
+    public static final int[] TEXTS = {
+            R.string.water_reminder_text_0, R.string.water_reminder_text_1,
+            R.string.water_reminder_text_2, R.string.water_reminder_text_3,
+            R.string.water_reminder_text_4, R.string.water_reminder_text_5,
+            R.string.water_reminder_text_6, R.string.water_reminder_text_7,
+    };
+
+    /** Clamp an untrusted slot number to one that can safely index TITLES and TEXTS. */
+    public static int safeSlot(int slot) {
+        return (slot >= 0 && slot < COUNT) ? slot : 0;
+    }
 
     private static final int BLOCK_BEFORE_MIN = 30;
     private static final int BLOCK_AFTER_MIN  = 90;
@@ -95,7 +122,12 @@ public class WaterReminderManager {
         int[][] meals = {getBreakfast(ctx), getLunch(ctx), getDinner(ctx)};
         for (int[] meal : meals) {
             if (meal == null) continue;
-            int m = meal[0] * 60 + meal[1];
+            // Lifted into the same frame as the awake window before being blocked out.
+            // The window is normalised past midnight above; the meals were not, so with
+            // a bedtime after midnight a meal on the far side of it landed at a clock
+            // value below the window and was subtracted from nothing at all — the
+            // reminder then fired squarely in the middle of that meal.
+            int m = toAwakeFrame(meal[0] * 60 + meal[1], startMin);
             blocked.add(new int[]{m - BLOCK_BEFORE_MIN, m + BLOCK_AFTER_MIN});
         }
         blocked.sort((a, b) -> a[0] - b[0]);
@@ -142,10 +174,19 @@ public class WaterReminderManager {
     // ─── Alarm scheduling ─────────────────────────────────────────────────────
 
     public static void scheduleAll(Context ctx) {
-        ActivityLog.log(ctx, "water reminders rescheduled");
-        if (!canScheduleExact(ctx)) return;
+        // Cancelled before the permission check, not after. Returning early left
+        // yesterday's alarms installed, so revoking exact-alarm access stopped new
+        // reminders being scheduled while the old ones kept firing.
         cancelAll(ctx);
+        if (!canScheduleExact(ctx)) {
+            // Logged here rather than on the way in, so the file says what actually
+            // happened instead of reporting a reschedule that never took place.
+            ActivityLog.log(ctx, "water reminders NOT rescheduled",
+                    "reason=no_exact_alarm_permission");
+            return;
+        }
         List<int[]> slots = computeReminderTimes(ctx);
+        ActivityLog.log(ctx, "water reminders rescheduled", "count=" + slots.size());
         AlarmManager am = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
         for (int i = 0; i < slots.size() && i < COUNT; i++) {
             int[] slot = slots.get(i);
@@ -199,11 +240,28 @@ public class WaterReminderManager {
         return -1;
     }
 
+    /**
+     * Segments are half-open, matching offsetToClockMin.
+     *
+     * The end was inclusive here and exclusive there, so a reminder could be placed on
+     * the exact minute a meal's blocked window begins — the one minute the whole
+     * calculation exists to avoid.
+     */
     private static boolean isInValidSegment(List<int[]> valid, int clockMin) {
         for (int[] v : valid) {
-            if (clockMin >= v[0] && clockMin <= v[1]) return true;
+            if (clockMin >= v[0] && clockMin < v[1]) return true;
         }
         return false;
+    }
+
+    /**
+     * Express a clock time in the same frame as an awake window that may run past
+     * midnight: the smallest value at or after {@code startMin} that lands on this
+     * time of day.
+     */
+    public static int toAwakeFrame(int clockMin, int startMin) {
+        int day = 24 * 60;
+        return startMin + Math.floorMod(clockMin - startMin, day);
     }
 
     // ─── Alarm intent helpers ─────────────────────────────────────────────────

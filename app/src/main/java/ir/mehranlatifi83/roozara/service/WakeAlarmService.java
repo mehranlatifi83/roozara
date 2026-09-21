@@ -8,11 +8,9 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioAttributes;
-import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.RingtoneManager;
 import android.net.Uri;
-import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -21,6 +19,7 @@ import androidx.core.app.NotificationCompat;
 import ir.mehranlatifi83.roozara.R;
 import ir.mehranlatifi83.roozara.manager.SleepModeController;
 import ir.mehranlatifi83.roozara.util.ActivityLog;
+import ir.mehranlatifi83.roozara.util.Notifications;
 import ir.mehranlatifi83.roozara.ui.MainActivity;
 import ir.mehranlatifi83.roozara.ui.SleepLockActivity;
 
@@ -28,7 +27,7 @@ public class WakeAlarmService extends Service {
 
     private static final String TAG        = "WakeAlarmService";
     private static final String CHANNEL_ID = "wake_alarm_channel";
-    private static final int    NOTIF_ID   = 4;
+    private static final int    NOTIF_ID   = Notifications.WAKE_ALARM;
 
     public static final String ACTION_DISMISS       = "ir.mehranlatifi83.roozara.ACTION_DISMISS_WAKE";
     public static final String PREF_SOUND_URI       = "alarm_sound_uri";
@@ -55,7 +54,7 @@ public class WakeAlarmService extends Service {
         }
 
         // Mark wake alarm active so SleepLockActivity knows to show the challenge on start.
-        getSharedPreferences("helth_prefs", MODE_PRIVATE)
+        getSharedPreferences(SleepModeController.PREFS, MODE_PRIVATE)
                 .edit().putBoolean(KEY_WAKE_ALARM_ACTIVE, true).apply();
 
         playAlarm();
@@ -76,18 +75,42 @@ public class WakeAlarmService extends Service {
 
     // ─── Static helpers ───────────────────────────────────────────────────────
 
+    /**
+     * Ring the alarm.
+     *
+     * The start is guarded. startForegroundService throws when an OEM power manager or
+     * a background-start restriction refuses it, and this is called from the broadcast
+     * receiver that fires at wake time — so the throw took down the receiver, and the
+     * morning arrived with no alarm and nothing in the log to say why. It is now
+     * recorded as the failure it is, which is the one failure this app cannot have
+     * happen silently.
+     */
     public static void start(Context ctx) {
-        ActivityLog.log(ctx, "wake alarm starting");
-        ctx.startForegroundService(new Intent(ctx, WakeAlarmService.class));
+        try {
+            ctx.startForegroundService(new Intent(ctx, WakeAlarmService.class));
+            ActivityLog.log(ctx, "wake alarm starting");
+        } catch (Exception e) {
+            ActivityLog.log(ctx, "WAKE ALARM COULD NOT START",
+                    "error=" + e.getClass().getSimpleName());
+        }
     }
 
+    /** Stop the alarm. Records which route worked, because they fail differently. */
     public static void stop(Context ctx) {
-        ActivityLog.log(ctx, "wake alarm stopped");
         try {
             ctx.startForegroundService(
                     new Intent(ctx, WakeAlarmService.class).setAction(ACTION_DISMISS));
+            ActivityLog.log(ctx, "wake alarm stopped");
         } catch (Exception e) {
-            ctx.stopService(new Intent(ctx, WakeAlarmService.class));
+            // The service is not running, or a foreground start was refused. Stopping it
+            // outright still gets the sound off, which is all that matters here.
+            try {
+                ctx.stopService(new Intent(ctx, WakeAlarmService.class));
+                ActivityLog.log(ctx, "wake alarm stopped", "via=stopService");
+            } catch (Exception inner) {
+                ActivityLog.log(ctx, "wake alarm could NOT be stopped",
+                        "error=" + inner.getClass().getSimpleName());
+            }
         }
     }
 
@@ -109,7 +132,7 @@ public class WakeAlarmService extends Service {
         // and restarting audio when both CountDownTimer and AlarmManager fire together.
         if (player != null) return;
 
-        String chosen = getSharedPreferences("helth_prefs", MODE_PRIVATE)
+        String chosen = getSharedPreferences(SleepModeController.PREFS, MODE_PRIVATE)
                 .getString(PREF_SOUND_URI, null);
         if (chosen != null && tryPlay(Uri.parse(chosen), "chosen sound")) return;
         if (chosen != null) {
@@ -187,7 +210,7 @@ public class WakeAlarmService extends Service {
         // their phone on vibrate.
         SleepModeController.releaseSystemState(this, "wake_alarm_dismissed");
 
-        getSharedPreferences("helth_prefs", MODE_PRIVATE)
+        getSharedPreferences(SleepModeController.PREFS, MODE_PRIVATE)
                 .edit()
                 .putBoolean(KEY_WAKE_ALARM_ACTIVE, false)
                 .apply();
@@ -196,16 +219,13 @@ public class WakeAlarmService extends Service {
     // ─── Notification ─────────────────────────────────────────────────────────
 
     private Notification buildNotification() {
-        String challengeMode = getSharedPreferences("helth_prefs", MODE_PRIVATE)
+        String challengeMode = getSharedPreferences(SleepModeController.PREFS, MODE_PRIVATE)
                 .getString(SleepLockActivity.PREF_CHALLENGE, SleepLockActivity.CHALLENGE_SIMPLE);
         boolean isSimple = SleepLockActivity.CHALLENGE_SIMPLE.equals(challengeMode);
 
         Intent dismissIntent = new Intent(this, WakeAlarmService.class).setAction(ACTION_DISMISS);
-        PendingIntent dismissPi = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                ? PendingIntent.getForegroundService(this, 0, dismissIntent,
-                        PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE)
-                : PendingIntent.getService(this, 0, dismissIntent,
-                        PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        PendingIntent dismissPi = PendingIntent.getForegroundService(this, 0, dismissIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         // fullScreenIntent always opens the challenge screen, not MainActivity.
         PendingIntent challengePi = PendingIntent.getActivity(

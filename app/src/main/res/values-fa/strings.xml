@@ -233,4 +233,7 @@
 هر وقت خواستید می‌توانید از همان صفحهٔ تنظیمات خاموشش کنید.</string>
     <string name="guard_on">روشن</string>
     <string name="guard_off">خاموش</string>
+    <!-- Stands in for the answer in a challenge sum: "6 × 7 = ?". The Persian
+         question mark is a different character, so this cannot be hardcoded. -->
+    <string name="math_unknown">؟</string>
 </resources>

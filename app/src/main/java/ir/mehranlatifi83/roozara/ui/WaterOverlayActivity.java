@@ -1,6 +1,5 @@
 package ir.mehranlatifi83.roozara.ui;
 
-import android.os.Build;
 import android.os.Bundle;
 import android.widget.TextView;
 
@@ -10,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
 
 import ir.mehranlatifi83.roozara.R;
+import ir.mehranlatifi83.roozara.manager.WaterReminderManager;
 import ir.mehranlatifi83.roozara.receiver.WaterReminderReceiver;
 
 public class WaterOverlayActivity extends AppCompatActivity {
@@ -18,10 +18,8 @@ public class WaterOverlayActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-            setShowWhenLocked(true);
-            setTurnScreenOn(true);
-        }
+        setShowWhenLocked(true);
+        setTurnScreenOn(true);
 
         setContentView(R.layout.activity_water_overlay);
 
@@ -37,21 +35,10 @@ public class WaterOverlayActivity extends AppCompatActivity {
     }
 
     private void setupMessage(int slot) {
-        int[] titleRes = {
-            R.string.water_reminder_title_0, R.string.water_reminder_title_1,
-            R.string.water_reminder_title_2, R.string.water_reminder_title_3,
-            R.string.water_reminder_title_4, R.string.water_reminder_title_5,
-            R.string.water_reminder_title_6, R.string.water_reminder_title_7,
-        };
-        int[] textRes = {
-            R.string.water_reminder_text_0, R.string.water_reminder_text_1,
-            R.string.water_reminder_text_2, R.string.water_reminder_text_3,
-            R.string.water_reminder_text_4, R.string.water_reminder_text_5,
-            R.string.water_reminder_text_6, R.string.water_reminder_text_7,
-        };
-
-        int safe = (slot >= 0 && slot < titleRes.length) ? slot : 0;
-        ((TextView) findViewById(R.id.text_overlay_title)).setText(titleRes[safe]);
-        ((TextView) findViewById(R.id.text_overlay_body)).setText(textRes[safe]);
+        int safe = WaterReminderManager.safeSlot(slot);
+        ((TextView) findViewById(R.id.text_overlay_title))
+                .setText(WaterReminderManager.TITLES[safe]);
+        ((TextView) findViewById(R.id.text_overlay_body))
+                .setText(WaterReminderManager.TEXTS[safe]);
     }
 }

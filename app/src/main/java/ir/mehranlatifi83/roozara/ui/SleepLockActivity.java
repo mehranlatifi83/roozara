@@ -4,12 +4,10 @@ import android.app.AlertDialog;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
-import android.provider.Settings;
 import android.text.InputType;
 import android.graphics.Rect;
 import android.view.Gravity;
@@ -40,7 +38,8 @@ import ir.mehranlatifi83.roozara.manager.SleepModeController;
 import ir.mehranlatifi83.roozara.util.ActivityLog;
 import ir.mehranlatifi83.roozara.service.SleepVpnService;
 import ir.mehranlatifi83.roozara.service.WakeAlarmService;
-import ir.mehranlatifi83.roozara.util.JalaliCalendar;
+import ir.mehranlatifi83.roozara.util.DateLabel;
+import ir.mehranlatifi83.roozara.util.Notifications;
 
 import java.util.Calendar;
 import java.util.Locale;
@@ -83,9 +82,29 @@ public class SleepLockActivity extends AppCompatActivity {
     private TextView textLockDate;
 
     // ─── State ───────────────────────────────────────────────────────────────
+    /** One generator for the whole screen; a new one per problem bought nothing. */
+    private static final Random RANDOM = new Random();
+
     private int     mathAnswer;
     private String  memorySequence;
     private int     wrongCount          = 0;
+
+    /**
+     * Wrong answers on the early-exit challenge, counted separately from the alarm's.
+     *
+     * Leaving early is the one door out of a night the user asked for, and it used to
+     * hand out a fresh easy sum after every wrong answer, for ever. It now escalates
+     * exactly like the wake challenge does.
+     */
+    private int     earlyExitWrongCount = 0;
+
+    /**
+     * The dialog currently on screen, so it can be closed with the activity.
+     *
+     * Early exit runs through dialogs, and none of them were dismissed on the way out —
+     * a rotation while one was open leaked its window.
+     */
+    private AlertDialog activeDialog;
     private boolean exitCalled          = false;
     private boolean wakeChallengeActive = false;
     private boolean earlyExitButtonShown = false;
@@ -253,17 +272,33 @@ public class SleepLockActivity extends AppCompatActivity {
         super.onDestroy();
         if (countDownTimer != null) countDownTimer.cancel();
         handler.removeCallbacksAndMessages(null);
+        dismissActiveDialog();
+    }
+
+    private void dismissActiveDialog() {
+        if (activeDialog != null) {
+            if (activeDialog.isShowing()) activeDialog.dismiss();
+            activeDialog = null;
+        }
+    }
+
+    /** Show a dialog and remember it, so it goes away with the activity. */
+    private void showTracked(AlertDialog.Builder builder) {
+        dismissActiveDialog();
+        activeDialog = builder.create();
+        activeDialog.show();
     }
 
     // ─── Window ──────────────────────────────────────────────────────────────
 
     private void setupWindowFlags() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-            setShowWhenLocked(true);
-            setTurnScreenOn(true);
-        } else {
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
-                    | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+        setShowWhenLocked(true);
+        setTurnScreenOn(true);
+        // Dismisses the system keyguard on devices with no secure lock, so waking the
+        // phone at night lands straight on this screen instead of behind a swipe.
+        android.app.KeyguardManager keyguard = getSystemService(android.app.KeyguardManager.class);
+        if (keyguard != null && !keyguard.isKeyguardSecure()) {
+            keyguard.requestDismissKeyguard(this, null);
         }
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
     }
@@ -321,21 +356,14 @@ public class SleepLockActivity extends AppCompatActivity {
         textLockDate.setText(buildLocalizedDate(cal));
     }
 
+    /**
+     * No year: the lock screen shows tonight, and the year is noise at 3am.
+     *
+     * It used to pick the calendar from the phone's language rather than from the
+     * setting, so this was the one screen that ignored the user's choice.
+     */
     private String buildLocalizedDate(Calendar cal) {
-        String lang = Locale.getDefault().getLanguage();
-        if ("fa".equals(lang)) {
-            String[] days   = {"یکشنبه","دوشنبه","سه‌شنبه","چهارشنبه","پنجشنبه","جمعه","شنبه"};
-            String[] months = {"فروردین","اردیبهشت","خرداد","تیر","مرداد","شهریور",
-                               "مهر","آبان","آذر","دی","بهمن","اسفند"};
-            int[] j = JalaliCalendar.toJalali(
-                    cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1,
-                    cal.get(Calendar.DAY_OF_MONTH));
-            return days[cal.get(Calendar.DAY_OF_WEEK) - 1] + "،  " + j[2] + " " + months[j[1] - 1];
-        }
-        return cal.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, Locale.getDefault())
-                + ",  "
-                + cal.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault())
-                + " " + cal.get(Calendar.DAY_OF_MONTH);
+        return DateLabel.format(this, cal, true, false);
     }
 
     // ─── Countdown ───────────────────────────────────────────────────────────
@@ -404,15 +432,17 @@ public class SleepLockActivity extends AppCompatActivity {
     }
 
     private void onEarlyExitTapped() {
+        // Deliberately not reset here. Resetting on each tap meant cancelling the dialog
+        // and tapping Early Exit again handed back an easy sum — the escalation was
+        // free to walk around, which is the whole thing it was added to prevent.
         String mode = challengeMode();
         switch (mode) {
             case CHALLENGE_SIMPLE:
-                new AlertDialog.Builder(this)
+                showTracked(new AlertDialog.Builder(this)
                         .setTitle(R.string.early_exit_confirm_title)
                         .setMessage(R.string.early_exit_confirm_msg)
                         .setPositiveButton(R.string.confirm_awake, (d, w) -> exitSleepMode())
-                        .setNegativeButton(R.string.cancel, null)
-                        .show();
+                        .setNegativeButton(R.string.cancel, null));
                 break;
             case CHALLENGE_MEMORY:
                 showEarlyExitMemoryDialog();
@@ -424,46 +454,57 @@ public class SleepLockActivity extends AppCompatActivity {
     }
 
     private void showEarlyExitMathDialog() {
-        int[] qa = randomMathProblem(0);
+        // Same escalation as the wake challenge: every second wrong answer is a harder
+        // sum, up to the hardest. A fresh easy one each time made the door free to walk
+        // through by guessing.
+        int[] qa = randomMathProblem(Math.min(earlyExitWrongCount / 2, 2));
         EditText et = buildAnswerInput();
-        new AlertDialog.Builder(this)
+        showTracked(new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.early_exit_math_prompt))
                 .setMessage(mathProblemString(qa))
                 .setView(et)
                 .setCancelable(true)
                 .setPositiveButton(R.string.confirm, (d, w) -> {
-                    if (checkInput(et, qa[0])) exitSleepMode();
-                    else handler.post(this::showEarlyExitMathDialog);
+                    if (checkInput(et, qa[0])) {
+                        exitSleepMode();
+                    } else {
+                        earlyExitWrongCount++;
+                        handler.post(this::showEarlyExitMathDialog);
+                    }
                 })
-                .setNegativeButton(R.string.cancel, null)
-                .show();
+                .setNegativeButton(R.string.cancel, null));
     }
 
     private void showEarlyExitMemoryDialog() {
-        String seq = randomDigitSequence(5);
-        new AlertDialog.Builder(this)
+        // One digit longer every second failure, to the same ceiling the maths uses.
+        String seq = randomDigitSequence(5 + Math.min(earlyExitWrongCount / 2, 2));
+        showTracked(new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.memory_show_prompt))
                 .setMessage(formatSequence(seq))
                 .setCancelable(false)
-                .setPositiveButton(R.string.memory_got_it, (d, w) -> showEarlyExitMemoryInput(seq))
-                .show();
+                .setPositiveButton(R.string.memory_got_it, (d, w) -> showEarlyExitMemoryInput(seq)));
     }
 
     private void showEarlyExitMemoryInput(String seq) {
         EditText et = buildAnswerInput();
-        new AlertDialog.Builder(this)
+        showTracked(new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.memory_enter_prompt))
                 .setView(et)
                 .setCancelable(true)
                 .setPositiveButton(R.string.confirm, (d, w) -> {
                     String typed = et.getText().toString().trim();
-                    if (typed.equals(seq)) exitSleepMode();
-                    else handler.post(this::showEarlyExitMemoryDialog);
+                    if (typed.equals(seq)) {
+                        exitSleepMode();
+                    } else {
+                        earlyExitWrongCount++;
+                        handler.post(this::showEarlyExitMemoryDialog);
+                    }
                 })
+                // Retry is a second look at a new sequence, not a wrong answer, so it
+                // deliberately does not count against the user.
                 .setNeutralButton(R.string.retry, (d, w) ->
                         handler.post(this::showEarlyExitMemoryDialog))
-                .setNegativeButton(getString(R.string.cancel), null)
-                .show();
+                .setNegativeButton(getString(R.string.cancel), null));
     }
 
     // ─── Wake alarm challenge ─────────────────────────────────────────────────
@@ -625,7 +666,7 @@ public class SleepLockActivity extends AppCompatActivity {
      * difficulty 0 = easy; 1 = chained; 2 = double multiply.
      */
     private int[] randomMathProblem(int difficulty) {
-        Random rnd = new Random();
+        Random rnd = RANDOM;
         switch (difficulty) {
             case 1: {
                 int a = 3 + rnd.nextInt(7), b = 3 + rnd.nextInt(7);
@@ -658,14 +699,18 @@ public class SleepLockActivity extends AppCompatActivity {
 
     private String mathProblemString(int[] qa) {
         // qa = {answer, a, b, opCode, [c, [d]]}
+        // The unknown comes from resources: the Persian question mark is a different
+        // character, and it was hardcoded, so an English user was asked "6 × 7 = ؟".
+        String unknown = getString(R.string.math_unknown);
+        String tail = " = " + unknown;
         int opCode = qa[3];
-        if (opCode == 0)  return qa[1] + " × " + qa[2] + " = ؟";
-        if (opCode == 1)  return qa[1] + " + " + qa[2] + " = ؟";
-        if (opCode == 2)  return qa[1] + " - " + qa[2] + " = ؟";
-        if (opCode == 10) return "(" + qa[1] + " × " + qa[2] + ") + " + qa[4] + " = ؟";
-        if (opCode == 11) return "(" + qa[1] + " × " + qa[2] + ") - " + qa[4] + " = ؟";
-        if (opCode == 20) return "(" + qa[1] + " × " + qa[2] + ") + (" + qa[4] + " × " + qa[5] + ") = ؟";
-        return "؟";
+        if (opCode == 0)  return qa[1] + " × " + qa[2] + tail;
+        if (opCode == 1)  return qa[1] + " + " + qa[2] + tail;
+        if (opCode == 2)  return qa[1] + " - " + qa[2] + tail;
+        if (opCode == 10) return "(" + qa[1] + " × " + qa[2] + ") + " + qa[4] + tail;
+        if (opCode == 11) return "(" + qa[1] + " × " + qa[2] + ") - " + qa[4] + tail;
+        if (opCode == 20) return "(" + qa[1] + " × " + qa[2] + ") + (" + qa[4] + " × " + qa[5] + ")" + tail;
+        return unknown;
     }
 
     private String formatSequence(String seq) {
@@ -678,9 +723,8 @@ public class SleepLockActivity extends AppCompatActivity {
     }
 
     private String randomDigitSequence(int length) {
-        Random rnd = new Random();
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < length; i++) sb.append(rnd.nextInt(10));
+        for (int i = 0; i < length; i++) sb.append(RANDOM.nextInt(10));
         return sb.toString();
     }
 
@@ -728,7 +772,7 @@ public class SleepLockActivity extends AppCompatActivity {
                 .putBoolean(WakeAlarmService.KEY_WAKE_ALARM_ACTIVE, false)
                 .apply();
 
-        getSystemService(NotificationManager.class).cancel(2);
+        getSystemService(NotificationManager.class).cancel(Notifications.SLEEP);
         finishAndRemoveTask();
     }
 }

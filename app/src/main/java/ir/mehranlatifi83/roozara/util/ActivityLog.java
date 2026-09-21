@@ -13,6 +13,9 @@ import java.io.FileWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A plain-text record of everything Roozara does.
@@ -27,6 +30,13 @@ import java.util.Locale;
  *
  * Nothing here ever throws. A logging failure must never break the feature it was only
  * meant to observe.
+ *
+ * Writing happens on a single background thread. Every caller is on a main thread that
+ * matters — a broadcast receiver the system is timing, a foreground service, and above
+ * all the accessibility guard, which logs on every bounce and whose main thread the
+ * whole device waits on. Opening a file there made the phone stutter exactly while it
+ * was meant to be sitting quietly. One thread rather than a pool, because the order of
+ * the lines is the point of the file.
  */
 public final class ActivityLog {
 
@@ -39,6 +49,17 @@ public final class ActivityLog {
     private static final long MAX_BYTES = 1024 * 1024;
 
     private static final Object LOCK = new Object();
+
+    /** Serial and daemon: lines keep their order and never hold the process open. */
+    private static final ExecutorService WRITER = Executors.newSingleThreadExecutor(r -> {
+        Thread thread = new Thread(r, "RoozaraLogWriter");
+        thread.setDaemon(true);
+        return thread;
+    });
+
+    /** Guarded by LOCK. Reused rather than rebuilt for every line. */
+    private static final SimpleDateFormat STAMP =
+            new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
 
     private ActivityLog() {}
 
@@ -83,12 +104,16 @@ public final class ActivityLog {
     }
 
     public static long sizeBytes(Context ctx) {
+        awaitPendingWrites();
         File f = file(ctx);
         return f.exists() ? f.length() : 0;
     }
 
     /** Empty the log. Recording carries on afterwards if it is switched on. */
     public static boolean clear(Context ctx) {
+        // Anything still queued belongs to the log being thrown away, so it is drained
+        // first; otherwise those lines reappeared in the freshly emptied file.
+        awaitPendingWrites();
         synchronized (LOCK) {
             try (FileWriter writer = new FileWriter(file(ctx), false)) {
                 writer.write("");
@@ -97,8 +122,25 @@ public final class ActivityLog {
                 return false;
             }
         }
-        write(ctx, "log cleared by the user");
+        // Only when recording is on. Clearing with logging switched off used to leave a
+        // line behind in a file the user had just asked to be empty.
+        if (isEnabled(ctx)) write(ctx, "log cleared by the user");
         return true;
+    }
+
+    /**
+     * Block briefly until queued lines have reached the file.
+     *
+     * Callers that read the file — sharing it, showing its size — would otherwise see a
+     * version missing whatever was written moments earlier. The timeout means a stuck
+     * write can never hang the UI; at worst the file is one line short.
+     */
+    public static void awaitPendingWrites() {
+        try {
+            WRITER.submit(() -> { }).get(500, TimeUnit.MILLISECONDS);
+        } catch (Exception ignored) {
+            // Interrupted, timed out, or the executor is gone. Nothing worth reporting.
+        }
     }
 
     /**
@@ -108,6 +150,7 @@ public final class ActivityLog {
      * opening an empty share sheet.
      */
     public static Intent shareIntent(Context ctx) {
+        awaitPendingWrites();
         File f = file(ctx);
         if (!f.exists() || f.length() == 0) return null;
         try {
@@ -127,12 +170,27 @@ public final class ActivityLog {
     // ─── Internals ───────────────────────────────────────────────────────────
 
     private static void write(Context ctx, String line) {
+        // Stamped on the calling thread. Taking the time inside the worker would date
+        // every line by when the queue reached it rather than when the thing happened,
+        // which is the one question this file exists to answer.
+        final Date when = new Date();
+        // The application context, so a queued line can never keep an activity or a
+        // service alive for as long as it waits.
+        final Context appCtx = ctx.getApplicationContext();
+        try {
+            WRITER.execute(() -> writeNow(appCtx, when, line));
+        } catch (Exception e) {
+            // The executor refuses work only once it is shutting down with the process.
+            Log.w(TAG, "Could not queue a log line", e);
+        }
+    }
+
+    private static void writeNow(Context ctx, Date when, String line) {
         synchronized (LOCK) {
             try {
                 File f = file(ctx);
                 rotateIfNeeded(f);
-                String stamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US)
-                        .format(new Date());
+                String stamp = STAMP.format(when);
                 try (FileWriter writer = new FileWriter(f, true)) {
                     writer.append(stamp).append("  ").append(line).append('\n');
                 }
@@ -146,9 +204,16 @@ public final class ActivityLog {
     private static void rotateIfNeeded(File f) {
         if (!f.exists() || f.length() < MAX_BYTES) return;
         File previous = new File(f.getParentFile(), FILE_NAME + ".previous");
-        if (previous.exists() && !previous.delete()) return;
-        if (!f.renameTo(previous)) {
-            Log.w(TAG, "Could not rotate the log");
+        if ((!previous.exists() || previous.delete()) && f.renameTo(previous)) return;
+
+        // Rotation failed. Truncating loses the history, but the alternative was giving
+        // up silently and letting the file grow without bound for the rest of the
+        // install — the one thing the size limit exists to prevent.
+        Log.w(TAG, "Could not rotate the log; truncating instead");
+        try (FileWriter writer = new FileWriter(f, false)) {
+            writer.write("");
+        } catch (Exception e) {
+            Log.w(TAG, "Could not truncate the log either", e);
         }
     }
 

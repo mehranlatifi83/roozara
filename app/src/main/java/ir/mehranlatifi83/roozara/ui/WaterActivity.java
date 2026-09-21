@@ -1,8 +1,6 @@
 package ir.mehranlatifi83.roozara.ui;
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -21,10 +19,9 @@ import com.google.android.material.materialswitch.MaterialSwitch;
 
 import ir.mehranlatifi83.roozara.R;
 import ir.mehranlatifi83.roozara.manager.WaterReminderManager;
-import ir.mehranlatifi83.roozara.util.JalaliCalendar;
+import ir.mehranlatifi83.roozara.util.DateLabel;
 import ir.mehranlatifi83.roozara.util.TimePickerHelper;
 
-import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
@@ -248,15 +245,16 @@ public class WaterActivity extends AppCompatActivity {
     }
 
     private void showCalendarPicker() {
-        SharedPreferences prefs = getSharedPreferences("helth_prefs", Context.MODE_PRIVATE);
-        boolean useJalali = prefs.getBoolean("use_jalali_calendar",
-                "fa".equals(Locale.getDefault().getLanguage()));
+        // Through DateLabel like every other screen. This one spelled the preference file
+        // and key out by hand, so a typo here would have silently given the water screen
+        // a calendar setting of its own.
+        boolean useJalali = DateLabel.useJalali(this);
         String[] labels = { getString(R.string.calendar_jalali), getString(R.string.calendar_gregorian) };
         int checked = useJalali ? 0 : 1;
         new AlertDialog.Builder(this)
                 .setTitle(R.string.calendar_title)
                 .setSingleChoiceItems(labels, checked, (d, which) -> {
-                    prefs.edit().putBoolean("use_jalali_calendar", which == 0).apply();
+                    DateLabel.setUseJalali(this, which == 0);
                     ((TextView) findViewById(R.id.text_water_date)).setText(buildLocalizedDate());
                     d.dismiss();
                 })
@@ -266,20 +264,8 @@ public class WaterActivity extends AppCompatActivity {
 
     // ─── Date ────────────────────────────────────────────────────────────────
 
+    /** No weekday here: this screen is about the day's plan, not about which day. */
     private String buildLocalizedDate() {
-        Calendar cal = Calendar.getInstance();
-        boolean useJalali = getSharedPreferences("helth_prefs", Context.MODE_PRIVATE)
-                .getBoolean("use_jalali_calendar", "fa".equals(Locale.getDefault().getLanguage()));
-        if (useJalali) {
-            String[] months = {"فروردین","اردیبهشت","خرداد","تیر","مرداد","شهریور",
-                               "مهر","آبان","آذر","دی","بهمن","اسفند"};
-            int[] j = JalaliCalendar.toJalali(
-                    cal.get(Calendar.YEAR),
-                    cal.get(Calendar.MONTH) + 1,
-                    cal.get(Calendar.DAY_OF_MONTH));
-            return j[2] + " " + months[j[1] - 1] + " " + j[0];
-        }
-        return cal.getDisplayName(Calendar.MONTH, Calendar.LONG, java.util.Locale.getDefault())
-                + " " + cal.get(Calendar.DAY_OF_MONTH) + ", " + cal.get(Calendar.YEAR);
+        return DateLabel.today(this, false, true);
     }
 }

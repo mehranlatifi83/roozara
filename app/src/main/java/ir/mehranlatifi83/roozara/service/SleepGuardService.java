@@ -10,8 +10,12 @@ import android.provider.Settings;
 import android.text.TextUtils;
 import android.view.accessibility.AccessibilityEvent;
 
+import java.util.Locale;
+
 import ir.mehranlatifi83.roozara.manager.SleepModeController;
+import ir.mehranlatifi83.roozara.receiver.ScreenStateReceiver;
 import ir.mehranlatifi83.roozara.ui.SleepLockActivity;
+import ir.mehranlatifi83.roozara.ui.SleepOverlayGuard;
 import ir.mehranlatifi83.roozara.util.ActivityLog;
 
 /**
@@ -52,16 +56,29 @@ public class SleepGuardService extends AccessibilityService {
     };
 
     /**
-     * Bounces are rate-limited. Relaunching on every single window event turns into a
-     * loop the moment anything transient appears, and a phone that flickers is worse
-     * than one that takes half a second to come back.
+     * Bounces are rate-limited, but only just.
+     *
+     * The limit exists so that a burst of window events from one transition does not
+     * turn into a relaunch loop — not to give the user a grace period. At 400ms a
+     * deliberate swipe to another app stayed on screen long enough to tap something, so
+     * it is now short enough to feel immediate and still long enough to coalesce a
+     * single transition's events.
      */
-    private static final long MIN_BOUNCE_INTERVAL_MS = 400;
+    private static final long MIN_BOUNCE_INTERVAL_MS = 120;
+
+    /**
+     * System panels are rate-limited separately.
+     *
+     * They shared a budget with app bounces, so pulling the shade down used it up and
+     * an app opened immediately afterwards was let through untouched.
+     */
+    private static final long MIN_PANEL_INTERVAL_MS = 120;
 
     private static boolean running = false;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private long lastBounce = 0;
+    private long lastPanelClose = 0;
 
     // ─── Availability ────────────────────────────────────────────────────────
 
@@ -96,13 +113,23 @@ public class SleepGuardService extends AccessibilityService {
         running = true;
 
         AccessibilityServiceInfo info = new AccessibilityServiceInfo();
-        info.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED;
+        // WINDOWS_CHANGED as well as WINDOW_STATE_CHANGED: some launchers and some
+        // system panels come forward without a state change, and those were the routes
+        // that stayed open.
+        info.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
+                | AccessibilityEvent.TYPE_WINDOWS_CHANGED;
         info.feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC;
         // No content retrieval: this only needs to know which package is in front, and
         // asking for less is the right default for a permission this powerful.
         info.flags = AccessibilityServiceInfo.DEFAULT;
         info.notificationTimeout = 100;
         setServiceInfo(info);
+
+        // Registered, never unregistered from here. The VPN service and the boot
+        // receiver rely on the same watcher, and tearing it down when this service is
+        // switched off took the instant re-lock away from them too. Its lifetime belongs
+        // to the schedule, which is what ScheduleManager now owns.
+        ScreenStateReceiver.register(this);
 
         ActivityLog.log(this, "sleep guard connected");
     }
@@ -116,7 +143,7 @@ public class SleepGuardService extends AccessibilityService {
 
     /** True for the dialer, the in-call screen and the emergency dialer. */
     private static boolean isCallRelated(String packageName) {
-        String lower = packageName.toLowerCase();
+        String lower = packageName.toLowerCase(Locale.ROOT);
         for (String marker : CALL_PACKAGES) {
             if (lower.contains(marker)) return true;
         }
@@ -150,7 +177,10 @@ public class SleepGuardService extends AccessibilityService {
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
-        if (event == null || event.getEventType() != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+        if (event == null) return;
+        int type = event.getEventType();
+        if (type != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
+                && type != AccessibilityEvent.TYPE_WINDOWS_CHANGED) {
             return;
         }
         // Only ever active during the sleep window. Outside it this service watches
@@ -161,30 +191,73 @@ public class SleepGuardService extends AccessibilityService {
         if (pkg == null) return;
         String packageName = pkg.toString();
 
-        if (packageName.equals(getPackageName())) return;
-
         if (isCallRelated(packageName) || isCallInProgress()) {
             // Deliberately not even logged as a bounce that was skipped: this is not a
             // near miss, it is the guard correctly staying out of the way.
             return;
         }
 
+        if (packageName.equals(getPackageName())) {
+            // Our own package is not automatically fine. The lock screen is; anything
+            // else of ours — the main screen reached from a notification, the water
+            // reminder popup — is just another window covering it, and leaving those
+            // alone was a way out of the lock screen that happened to be in-app.
+            //
+            // Only WINDOW_STATE_CHANGED is trusted to make that distinction. A
+            // WINDOWS_CHANGED event carries no activity class name, and the overlay this
+            // service raises itself produces one — so acting on it meant bouncing
+            // endlessly against our own cover.
+            if (type != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return;
+            if (isLockScreen(event)) return;
+            bounce("own screen opened during sleep - returning to the lock screen",
+                    String.valueOf(event.getClassName()));
+            return;
+        }
+
+        if (packageName.equals(SYSTEM_UI)) {
+            long now = System.currentTimeMillis();
+            if (now - lastPanelClose < MIN_PANEL_INTERVAL_MS) return;
+            lastPanelClose = now;
+            // The notification shade, the power menu, or the volume panel. Back closes
+            // all three without disturbing anything else. The lock screen is brought
+            // back as well: on several ROMs closing the shade reveals whatever was
+            // behind it rather than returning to the activity that was in front.
+            boolean closed = performGlobalAction(GLOBAL_ACTION_BACK);
+            // The action is refused while the device is locked or another service holds
+            // the gesture. Recording it as a success made the log claim the shade had
+            // been closed on exactly the nights it had not.
+            ActivityLog.log(this, closed
+                            ? "system panel closed during sleep"
+                            : "system panel could NOT be closed during sleep",
+                    "action=global_back");
+            handler.post(() -> SleepLockActivity.launch(this));
+            return;
+        }
+
+        bounce("app opened during sleep - returning to the lock screen", packageName);
+    }
+
+    /** True when the window that just came forward is the lock screen itself. */
+    private boolean isLockScreen(AccessibilityEvent event) {
+        CharSequence cls = event.getClassName();
+        return cls != null && SleepLockActivity.class.getName().contentEquals(cls);
+    }
+
+    /**
+     * Cover the screen now, bring the lock screen back a moment later.
+     *
+     * The overlay goes up synchronously because it is a window and needs no activity
+     * transition, so there is nothing usable on screen even for the instant before the
+     * activity returns. The relaunch itself is posted: the window that just appeared is
+     * still settling, and starting an activity in the middle of that is unreliable.
+     */
+    private void bounce(String reason, String detail) {
         long now = System.currentTimeMillis();
         if (now - lastBounce < MIN_BOUNCE_INTERVAL_MS) return;
         lastBounce = now;
 
-        if (packageName.equals(SYSTEM_UI)) {
-            // The notification shade, the power menu, or the volume panel. Back closes
-            // all three without disturbing anything else.
-            performGlobalAction(GLOBAL_ACTION_BACK);
-            ActivityLog.log(this, "system panel closed during sleep");
-            return;
-        }
-
-        ActivityLog.log(this, "app opened during sleep - returning to the lock screen",
-                "app=" + packageName);
-        // Posted rather than called inline: the window that just appeared is still
-        // settling, and starting an activity in the middle of that is unreliable.
+        SleepOverlayGuard.show(this);
+        ActivityLog.log(this, reason, "target=" + detail);
         handler.post(() -> SleepLockActivity.launch(this));
     }
 }

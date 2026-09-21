@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 
+import java.util.Locale;
+
 /**
  * Vendor-specific restrictions that stock Android does not have.
  *
@@ -52,9 +54,12 @@ public final class VendorSupport {
     }
 
     private static boolean matches(String vendor) {
-        return Build.MANUFACTURER != null
-                && Build.MANUFACTURER.toLowerCase().contains(vendor)
-                || (Build.BRAND != null && Build.BRAND.toLowerCase().contains(vendor));
+        // Parenthesised rather than leaning on && binding tighter than ||. The result was
+        // already right; nothing about reading it said so.
+        return (Build.MANUFACTURER != null
+                        && Build.MANUFACTURER.toLowerCase(Locale.ROOT).contains(vendor))
+                || (Build.BRAND != null
+                        && Build.BRAND.toLowerCase(Locale.ROOT).contains(vendor));
     }
 
     // ─── Settings deep links ─────────────────────────────────────────────────

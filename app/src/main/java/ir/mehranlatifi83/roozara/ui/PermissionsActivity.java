@@ -4,7 +4,6 @@ import android.Manifest;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.NotificationManager;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -122,8 +121,7 @@ public class PermissionsActivity extends AppCompatActivity {
         status(R.id.row_vpn, VpnService.prepare(this) == null, false);
         status(R.id.row_dnd, getSystemService(NotificationManager.class)
                 .isNotificationPolicyAccessGranted(), false);
-        boolean overlay = Build.VERSION.SDK_INT < Build.VERSION_CODES.M
-                || Settings.canDrawOverlays(this);
+        boolean overlay = Settings.canDrawOverlays(this);
         status(R.id.row_overlay, overlay, true);
         status(R.id.row_guard, SleepGuardService.isEnabled(this), true);
 
@@ -192,7 +190,7 @@ public class PermissionsActivity extends AppCompatActivity {
      */
     private void followUpAfterOverlayGranted() {
         awaitingOverlayResult = false;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
+        if (!Settings.canDrawOverlays(this)) {
             return;
         }
 
